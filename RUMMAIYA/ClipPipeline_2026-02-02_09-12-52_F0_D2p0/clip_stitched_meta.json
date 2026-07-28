@@ -1,0 +1,57 @@
+{
+    "folder_path": "D:\\MUMMAS DATA COLLECTION\\02022026\\run_20260202_091252_2998",
+    "frame_no": 0,
+    "fps": 30.000299969840455,
+    "start_ist_str": "2026-02-02T09:12:52.777831",
+    "source_folder": "run_20260202_091252_2998",
+    "ist_time": "Manual_Input",
+    "is_manual": true,
+    "playback_time_sec": "0.000",
+    "clip_duration_sec": 2.0,
+    "imu_data": null,
+    "utc_time": null,
+    "unix_time": 0,
+    "stitching_time_sec": 123.546,
+    "input_videos": [
+        "C:\\IITM\\RUMMAIYA\\ClipPipeline_2026-02-02_09-12-52_F0_D2p0\\UNDISTORTED\\undistorted_lens1.mp4",
+        "C:\\IITM\\RUMMAIYA\\ClipPipeline_2026-02-02_09-12-52_F0_D2p0\\UNDISTORTED\\undistorted_lens2.mp4",
+        "C:\\IITM\\RUMMAIYA\\ClipPipeline_2026-02-02_09-12-52_F0_D2p0\\UNDISTORTED\\undistorted_lens3.mp4",
+        "C:\\IITM\\RUMMAIYA\\ClipPipeline_2026-02-02_09-12-52_F0_D2p0\\UNDISTORTED\\undistorted_lens4.mp4",
+        "C:\\IITM\\RUMMAIYA\\ClipPipeline_2026-02-02_09-12-52_F0_D2p0\\UNDISTORTED\\undistorted_lens5.mp4",
+        "C:\\IITM\\RUMMAIYA\\ClipPipeline_2026-02-02_09-12-52_F0_D2p0\\UNDISTORTED\\undistorted_lens6.mp4"
+    ],
+    "lens_zooms": [
+        1.078,
+        1.127,
+        1.105,
+        1.044,
+        1.118,
+        1.08
+    ],
+    "final_orientations": [
+        [
+            -58.5,
+            0.0
+        ],
+        [
+            -118.19477081298828,
+            0.0
+        ],
+        [
+            181.95835876464844,
+            0.0
+        ],
+        [
+            120.09651947021484,
+            0.0
+        ],
+        [
+            60.0,
+            0.0
+        ],
+        [
+            -0.25758984684944153,
+            0.0
+        ]
+    ]
+}

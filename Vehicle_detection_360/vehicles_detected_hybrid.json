@@ -1,0 +1,24 @@
+{
+    "lens 1": {
+        "counts": {
+            "car": 330,
+            "bus": 40,
+            "truck": 100,
+            "motorcycle": 155,
+            "auto_rickshaw": 171
+        },
+        "avg_confidence": {
+            "car": 0.6165,
+            "bus": 0.6338,
+            "truck": 0.5005,
+            "motorcycle": 0.5621,
+            "auto_rickshaw": 0.6393
+        },
+        "metadata": {
+            "timestamp": "2026-02-05 16:23:56",
+            "resolution": "2160x3840",
+            "fps": 29.9,
+            "total_frames": 8969
+        }
+    }
+}

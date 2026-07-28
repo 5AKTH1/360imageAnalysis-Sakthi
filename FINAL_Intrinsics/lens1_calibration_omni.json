@@ -1,0 +1,85 @@
+{
+  "model": "omnidirectional",
+  "image_size": {
+    "w": 2880,
+    "h": 3840
+  },
+  "rms": 0.9431406227440116,
+  "K": [
+    [
+      1940.936984316059,
+      0.0,
+      1523.555687853237
+    ],
+    [
+      0.0,
+      1930.6568468832884,
+      2036.1504589553256
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "D": [
+    0.0,
+    0.0,
+    -0.033338021520401696,
+    -0.02975951342159328
+  ],
+  "xi": 1.0545173037744946,
+  "pattern": {
+    "cols": 16,
+    "rows": 6
+  },
+  "square_size_mm": 50.0,
+  "square_size_m": 0.05,
+  "square_size": 50.0,
+  "views_used": 18,
+  "rectify_output": {
+    "w": 2880,
+    "h": 3840
+  },
+  "calib_flags": 14,
+  "calibration_logic": "script_style_points + robust_fallback_cv64fc3",
+  "rectify": {
+    "zoom": 0.6,
+    "start_center_locked": true,
+    "align_raw_center": true,
+    "align_iters": 7,
+    "Knew": [
+      [
+        1164.5621905896353,
+        0.0,
+        1543.0
+      ],
+      [
+        0.0,
+        1158.394108129973,
+        2063.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "crop_metrics": {
+      "valid_ratio": 1.0,
+      "bbox_xyxy": [
+        0,
+        0,
+        2879,
+        3839
+      ],
+      "margins_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      }
+    },
+    "note": "Calibration uses fixed zoom for maps/preview. Use CalibrationCheckDialog for tuning/export."
+  }
+}

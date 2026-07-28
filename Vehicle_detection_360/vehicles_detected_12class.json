@@ -1,0 +1,19 @@
+{
+    "counts": {
+        "auto": 68,
+        "bus": 4,
+        "car": 130,
+        "cart": 0,
+        "cycle": 0,
+        "e-rickshaw": 1,
+        "motorbike": 77,
+        "person": 0,
+        "rickshaw": 0,
+        "tractor": 14,
+        "truck": 3
+    },
+    "metadata": {
+        "fps": 20.0,
+        "resolution": "606x1080"
+    }
+}

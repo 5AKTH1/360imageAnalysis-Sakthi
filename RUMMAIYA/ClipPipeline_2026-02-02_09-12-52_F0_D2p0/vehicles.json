@@ -1,0 +1,3203 @@
+{
+    "source_file": "C:\\IITM\\RUMMAIYA\\ClipPipeline_2026-02-02_09-12-52_F0_D2p0\\Final_Stitch.mp4",
+    "summary_counts": {
+        "car": 2,
+        "auto": 1,
+        "bus": 0,
+        "truck": 0,
+        "motorbike": 5
+    },
+    "detections": [
+        {
+            "frame": 0,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1501,
+                        924,
+                        1592,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1044,
+                        845,
+                        1122
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1761,
+                        985,
+                        1819,
+                        1039
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 1,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1499,
+                        921,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        767,
+                        1045,
+                        848,
+                        1129
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        981,
+                        1822,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 2,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        921,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        767,
+                        1045,
+                        847,
+                        1129
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        981,
+                        1822,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 3,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        921,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1045,
+                        847,
+                        1128
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1757,
+                        981,
+                        1822,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 4,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        921,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1045,
+                        846,
+                        1128
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1757,
+                        981,
+                        1822,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 5,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        921,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1045,
+                        847,
+                        1129
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1757,
+                        981,
+                        1822,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 6,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        921,
+                        1594,
+                        994
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1045,
+                        847,
+                        1130
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        982,
+                        1822,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1054,
+                        943,
+                        1195
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 7,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        921,
+                        1594,
+                        994
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1045,
+                        847,
+                        1130
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        982,
+                        1822,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1054,
+                        943,
+                        1194
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 8,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1499,
+                        921,
+                        1593,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1046,
+                        847,
+                        1131
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1757,
+                        981,
+                        1822,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1055,
+                        942,
+                        1194
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 9,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1499,
+                        921,
+                        1593,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1046,
+                        846,
+                        1131
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        981,
+                        1822,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1055,
+                        943,
+                        1195
+                    ],
+                    "avg_conf": 0.287
+                },
+                {
+                    "id": 6,
+                    "label": "motorbike",
+                    "bbox": [
+                        767,
+                        1044,
+                        874,
+                        1139
+                    ],
+                    "avg_conf": 0.31
+                }
+            ]
+        },
+        {
+            "frame": 10,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1499,
+                        921,
+                        1593,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1045,
+                        846,
+                        1130
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        982,
+                        1821,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1056,
+                        942,
+                        1195
+                    ],
+                    "avg_conf": 0.287
+                },
+                {
+                    "id": 6,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1043,
+                        879,
+                        1139
+                    ],
+                    "avg_conf": 0.31
+                }
+            ]
+        },
+        {
+            "frame": 11,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1499,
+                        921,
+                        1593,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1045,
+                        846,
+                        1130
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        982,
+                        1821,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1057,
+                        942,
+                        1195
+                    ],
+                    "avg_conf": 0.287
+                },
+                {
+                    "id": 6,
+                    "label": "motorbike",
+                    "bbox": [
+                        772,
+                        1043,
+                        880,
+                        1139
+                    ],
+                    "avg_conf": 0.31
+                }
+            ]
+        },
+        {
+            "frame": 12,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        921,
+                        1593,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1045,
+                        845,
+                        1130
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        984,
+                        1821,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1055,
+                        943,
+                        1196
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 13,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        920,
+                        1593,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1044,
+                        854,
+                        1136
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        984,
+                        1821,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1054,
+                        943,
+                        1196
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 14,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        920,
+                        1593,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1045,
+                        849,
+                        1132
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        985,
+                        1821,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1054,
+                        943,
+                        1196
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 15,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1499,
+                        920,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1045,
+                        847,
+                        1131
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        985,
+                        1820,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1053,
+                        944,
+                        1196
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 16,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1045,
+                        853,
+                        1136
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        985,
+                        1820,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        767,
+                        1053,
+                        944,
+                        1196
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 17,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1044,
+                        856,
+                        1138
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        984,
+                        1819,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        767,
+                        1053,
+                        944,
+                        1196
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 18,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1044,
+                        858,
+                        1139
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        984,
+                        1819,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        767,
+                        1053,
+                        944,
+                        1196
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 19,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1045,
+                        851,
+                        1134
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        984,
+                        1820,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        767,
+                        1053,
+                        944,
+                        1197
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 20,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1046,
+                        847,
+                        1132
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        983,
+                        1820,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 21,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1595,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1046,
+                        846,
+                        1131
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        983,
+                        1821,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 22,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        920,
+                        1595,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1047,
+                        846,
+                        1131
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        982,
+                        1821,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 23,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1595,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1047,
+                        845,
+                        1131
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        982,
+                        1821,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 24,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1501,
+                        922,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1046,
+                        845,
+                        1130
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        981,
+                        1821,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 25,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1501,
+                        922,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1046,
+                        845,
+                        1129
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        981,
+                        1821,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 26,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1501,
+                        922,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1046,
+                        845,
+                        1130
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        981,
+                        1820,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 4,
+                    "label": "auto",
+                    "bbox": [
+                        1500,
+                        922,
+                        1594,
+                        995
+                    ],
+                    "avg_conf": 0.626
+                }
+            ]
+        },
+        {
+            "frame": 27,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1501,
+                        922,
+                        1595,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1046,
+                        845,
+                        1130
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        982,
+                        1820,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 28,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        922,
+                        1595,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1046,
+                        846,
+                        1130
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        982,
+                        1819,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 29,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1595,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1046,
+                        846,
+                        1130
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        983,
+                        1819,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 30,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1595,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1046,
+                        846,
+                        1130
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        983,
+                        1819,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                }
+            ]
+        },
+        {
+            "frame": 31,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        921,
+                        1594,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1046,
+                        845,
+                        1128
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        984,
+                        1819,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        785,
+                        1083,
+                        927,
+                        1193
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 32,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        920,
+                        1593,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        772,
+                        1048,
+                        844,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        984,
+                        1819,
+                        1043
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1040,
+                        945,
+                        1300,
+                        1068
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        784,
+                        1083,
+                        929,
+                        1192
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 33,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        920,
+                        1593,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        772,
+                        1049,
+                        844,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1758,
+                        984,
+                        1820,
+                        1043
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1041,
+                        945,
+                        1300,
+                        1068
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        774,
+                        1070,
+                        938,
+                        1193
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 34,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        920,
+                        1593,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        773,
+                        1049,
+                        843,
+                        1126
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        984,
+                        1820,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1042,
+                        945,
+                        1300,
+                        1068
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1065,
+                        941,
+                        1193
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 35,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1498,
+                        920,
+                        1593,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        773,
+                        1049,
+                        844,
+                        1126
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        984,
+                        1819,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1042,
+                        945,
+                        1300,
+                        1068
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        769,
+                        1063,
+                        942,
+                        1193
+                    ],
+                    "avg_conf": 0.287
+                },
+                {
+                    "id": 13,
+                    "label": "motorbike",
+                    "bbox": [
+                        768,
+                        1048,
+                        867,
+                        1139
+                    ],
+                    "avg_conf": 0.45
+                }
+            ]
+        },
+        {
+            "frame": 36,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1499,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1048,
+                        844,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        984,
+                        1820,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1042,
+                        946,
+                        1298,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        776,
+                        1074,
+                        937,
+                        1193
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 37,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1048,
+                        844,
+                        1128
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        984,
+                        1820,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1042,
+                        946,
+                        1298,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        778,
+                        1078,
+                        935,
+                        1193
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 38,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1048,
+                        844,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1759,
+                        984,
+                        1820,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1042,
+                        946,
+                        1298,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        779,
+                        1081,
+                        935,
+                        1193
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 39,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        772,
+                        1048,
+                        844,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        984,
+                        1819,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1041,
+                        946,
+                        1299,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        779,
+                        1082,
+                        935,
+                        1193
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 40,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1501,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        772,
+                        1048,
+                        844,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        984,
+                        1819,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1042,
+                        946,
+                        1299,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        778,
+                        1082,
+                        936,
+                        1192
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 41,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1501,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        772,
+                        1049,
+                        844,
+                        1126
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        985,
+                        1819,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1042,
+                        946,
+                        1299,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        778,
+                        1082,
+                        936,
+                        1192
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 42,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1501,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        772,
+                        1049,
+                        844,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        985,
+                        1819,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1042,
+                        946,
+                        1299,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        776,
+                        1082,
+                        937,
+                        1192
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 43,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1049,
+                        844,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        985,
+                        1819,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1041,
+                        946,
+                        1299,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        776,
+                        1082,
+                        937,
+                        1192
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 44,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1048,
+                        844,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        985,
+                        1819,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1041,
+                        946,
+                        1299,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        776,
+                        1082,
+                        938,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 45,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1048,
+                        844,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        985,
+                        1819,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1040,
+                        946,
+                        1299,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        776,
+                        1082,
+                        938,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 46,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1048,
+                        844,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        986,
+                        1819,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1039,
+                        945,
+                        1299,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        776,
+                        1083,
+                        938,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 47,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1048,
+                        844,
+                        1126
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        986,
+                        1819,
+                        1042
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1039,
+                        945,
+                        1300,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        777,
+                        1084,
+                        938,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 48,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1046,
+                        845,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        984,
+                        1820,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1037,
+                        943,
+                        1300,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        764,
+                        1068,
+                        948,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 49,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1045,
+                        845,
+                        1128
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        983,
+                        1820,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1036,
+                        943,
+                        1300,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        760,
+                        1062,
+                        951,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 50,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1044,
+                        846,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        983,
+                        1820,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1036,
+                        943,
+                        1300,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        759,
+                        1059,
+                        952,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 51,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1044,
+                        846,
+                        1127
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        983,
+                        1820,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1035,
+                        942,
+                        1300,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        760,
+                        1059,
+                        951,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 52,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1043,
+                        846,
+                        1126
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        983,
+                        1820,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1035,
+                        942,
+                        1300,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        761,
+                        1060,
+                        950,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 53,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        992
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1043,
+                        846,
+                        1126
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        983,
+                        1819,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1035,
+                        942,
+                        1300,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        762,
+                        1061,
+                        948,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 54,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1042,
+                        846,
+                        1125
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        983,
+                        1819,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1036,
+                        943,
+                        1300,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        763,
+                        1061,
+                        948,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 55,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1042,
+                        845,
+                        1126
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        983,
+                        1820,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1037,
+                        943,
+                        1301,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        763,
+                        1061,
+                        947,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 56,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1042,
+                        845,
+                        1126
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        984,
+                        1819,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1038,
+                        943,
+                        1300,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        764,
+                        1061,
+                        946,
+                        1190
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 57,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1042,
+                        845,
+                        1125
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        984,
+                        1819,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1038,
+                        943,
+                        1300,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        765,
+                        1062,
+                        946,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 58,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        770,
+                        1042,
+                        845,
+                        1126
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        984,
+                        1819,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1038,
+                        943,
+                        1300,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        765,
+                        1062,
+                        945,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 59,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1044,
+                        844,
+                        1126
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        984,
+                        1819,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1038,
+                        943,
+                        1301,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        766,
+                        1063,
+                        944,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        },
+        {
+            "frame": 60,
+            "objects": [
+                {
+                    "id": 1,
+                    "label": "car",
+                    "bbox": [
+                        1500,
+                        921,
+                        1592,
+                        993
+                    ],
+                    "avg_conf": 0.663
+                },
+                {
+                    "id": 2,
+                    "label": "motorbike",
+                    "bbox": [
+                        771,
+                        1045,
+                        843,
+                        1125
+                    ],
+                    "avg_conf": 0.516
+                },
+                {
+                    "id": 3,
+                    "label": "motorbike",
+                    "bbox": [
+                        1760,
+                        985,
+                        1819,
+                        1041
+                    ],
+                    "avg_conf": 0.51
+                },
+                {
+                    "id": 12,
+                    "label": "car",
+                    "bbox": [
+                        1037,
+                        943,
+                        1301,
+                        1067
+                    ],
+                    "avg_conf": 0.775
+                },
+                {
+                    "id": 5,
+                    "label": "motorbike",
+                    "bbox": [
+                        766,
+                        1063,
+                        944,
+                        1191
+                    ],
+                    "avg_conf": 0.287
+                }
+            ]
+        }
+    ],
+    "inherited_meta": {
+        "folder_path": "D:\\MUMMAS DATA COLLECTION\\02022026\\run_20260202_091252_2998",
+        "frame_no": 0,
+        "fps": 30.000299969840455,
+        "start_ist_str": "2026-02-02T09:12:52.777831",
+        "source_folder": "run_20260202_091252_2998",
+        "ist_time": "Manual_Input",
+        "is_manual": true,
+        "playback_time_sec": "0.000",
+        "clip_duration_sec": 2.0,
+        "imu_data": null,
+        "utc_time": null,
+        "unix_time": 0
+    },
+    "processing_time_sec": 6.466
+}

@@ -1,0 +1,55 @@
+# Virtual environment
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+
+# Large installers and executables
+*.exe
+*.zip
+*.tar.gz
+*.rar
+*.msi
+*.gz
+
+# Model weights
+*.pt
+*.onnx
+*.engine
+
+# Heavy video and image assets
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.jpg
+*.jpeg
+*.png
+*.gif
+
+# Large data/CSV/XML/TXT directories or files
+IMU-GPS/
+CAMERA_Short_Clips/
+DATA_RETRIEVAL_TASK/
+Results/
+*.csv
+*.xlsx
+*.xls
+*.gpx
+
+# Presentations/Docs (some are extremely large, e.g. 9GB PPTX)
+presentations/*.pptx
+presentations/*.pdf
+presentations/*.docx
+presentations/~$*.docx
+presentations/*.tmp
+
+# Datasets and training runs (YOLO/SAHI)
+[Dd]atasets/
+runs/
+
+# OS metadata
+.DS_Store
+Thumbs.db

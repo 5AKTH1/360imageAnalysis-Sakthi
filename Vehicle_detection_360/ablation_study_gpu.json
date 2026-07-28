@@ -1,0 +1,449 @@
+{   "4k_30fps": {
+        "counts": {
+            "car": 610,
+            "bus": 43,
+            "truck": 69,
+            "motorcycle": 175,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.587,
+            "bus": 0.6193,
+            "truck": 0.5349,
+            "motorcycle": 0.5523,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 54.3,
+            "bus": 20.0,
+            "truck": 12.9,
+            "motorcycle": 22.1,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "2160x3840",
+            "simulated_fps": 29.9,
+            "processing_speed": 7.62
+        }
+    },
+    "4k_20fps": {
+        "counts": {
+            "car": 610,
+            "bus": 43,
+            "truck": 69,
+            "motorcycle": 175,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.587,
+            "bus": 0.6193,
+            "truck": 0.5349,
+            "motorcycle": 0.5523,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 54.3,
+            "bus": 20.0,
+            "truck": 12.9,
+            "motorcycle": 22.1,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "2160x3840",
+            "simulated_fps": 20,
+            "processing_speed": 7.53
+        }
+    },
+    "4k_10fps": {
+        "counts": {
+            "car": 535,
+            "bus": 29,
+            "truck": 47,
+            "motorcycle": 149,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.5807,
+            "bus": 0.6198,
+            "truck": 0.5438,
+            "motorcycle": 0.5357,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 20.7,
+            "bus": 9.7,
+            "truck": 6.4,
+            "motorcycle": 8.6,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "2160x3840",
+            "simulated_fps": 10,
+            "processing_speed": 3.81
+        }
+    },
+    "4k_5fps": {
+        "counts": {
+            "car": 470,
+            "bus": 22,
+            "truck": 37,
+            "motorcycle": 126,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.5796,
+            "bus": 0.6331,
+            "truck": 0.5337,
+            "motorcycle": 0.5299,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 11.7,
+            "bus": 6.7,
+            "truck": 4.0,
+            "motorcycle": 5.1,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "2160x3840",
+            "simulated_fps": 5,
+            "processing_speed": 2.35
+        }
+    },
+    "1080p_30fps": {
+        "counts": {
+            "car": 616,
+            "bus": 44,
+            "truck": 61,
+            "motorcycle": 163,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.5818,
+            "bus": 0.5935,
+            "truck": 0.5234,
+            "motorcycle": 0.55,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 54.8,
+            "bus": 21.2,
+            "truck": 11.8,
+            "motorcycle": 22.3,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "606x1080",
+            "simulated_fps": 29.9,
+            "processing_speed": 20.15
+        }
+    },
+    "1080p_20fps": {
+        "counts": {
+            "car": 616,
+            "bus": 44,
+            "truck": 61,
+            "motorcycle": 163,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.5818,
+            "bus": 0.5935,
+            "truck": 0.5234,
+            "motorcycle": 0.55,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 54.8,
+            "bus": 21.2,
+            "truck": 11.8,
+            "motorcycle": 22.3,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "606x1080",
+            "simulated_fps": 20,
+            "processing_speed": 20.26
+        }
+    },
+    "1080p_10fps": {
+        "counts": {
+            "car": 532,
+            "bus": 32,
+            "truck": 48,
+            "motorcycle": 130,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.5739,
+            "bus": 0.629,
+            "truck": 0.513,
+            "motorcycle": 0.5429,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 21.1,
+            "bus": 9.7,
+            "truck": 5.0,
+            "motorcycle": 9.3,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "606x1080",
+            "simulated_fps": 10,
+            "processing_speed": 7.38
+        }
+    },
+    "1080p_5fps": {
+        "counts": {
+            "car": 466,
+            "bus": 25,
+            "truck": 32,
+            "motorcycle": 114,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.5726,
+            "bus": 0.6465,
+            "truck": 0.5177,
+            "motorcycle": 0.5321,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 12.0,
+            "bus": 6.2,
+            "truck": 3.6,
+            "motorcycle": 5.4,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "606x1080",
+            "simulated_fps": 5,
+            "processing_speed": 4.04
+        }
+    },
+    "720p_30fps": {
+        "counts": {
+            "car": 579,
+            "bus": 36,
+            "truck": 51,
+            "motorcycle": 146,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.5905,
+            "bus": 0.6125,
+            "truck": 0.5381,
+            "motorcycle": 0.5524,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 55.6,
+            "bus": 24.6,
+            "truck": 12.0,
+            "motorcycle": 21.8,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "404x720",
+            "simulated_fps": 29.9,
+            "processing_speed": 23.43
+        }
+    },
+    "720p_20fps": {
+        "counts": {
+            "car": 577,
+            "bus": 36,
+            "truck": 51,
+            "motorcycle": 146,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.5907,
+            "bus": 0.6125,
+            "truck": 0.5381,
+            "motorcycle": 0.5524,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 55.8,
+            "bus": 24.6,
+            "truck": 12.0,
+            "motorcycle": 21.8,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "404x720",
+            "simulated_fps": 20,
+            "processing_speed": 20.21
+        }
+    },
+    "720p_10fps": {
+        "counts": {
+            "car": 505,
+            "bus": 27,
+            "truck": 33,
+            "motorcycle": 122,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.5824,
+            "bus": 0.6273,
+            "truck": 0.5425,
+            "motorcycle": 0.5381,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 21.2,
+            "bus": 11.2,
+            "truck": 6.1,
+            "motorcycle": 8.6,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "404x720",
+            "simulated_fps": 10,
+            "processing_speed": 6.65
+        }
+    },
+    "720p_5fps": {
+        "counts": {
+            "car": 446,
+            "bus": 23,
+            "truck": 26,
+            "motorcycle": 108,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.5779,
+            "bus": 0.6494,
+            "truck": 0.5469,
+            "motorcycle": 0.5317,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 12.0,
+            "bus": 6.4,
+            "truck": 4.2,
+            "motorcycle": 5.1,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "404x720",
+            "simulated_fps": 5,
+            "processing_speed": 3.4
+        }
+    },
+    "480p_30fps": {
+        "counts": {
+            "car": 518,
+            "bus": 32,
+            "truck": 42,
+            "motorcycle": 127,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.601,
+            "bus": 0.6507,
+            "truck": 0.5488,
+            "motorcycle": 0.5352,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 54.7,
+            "bus": 23.0,
+            "truck": 11.6,
+            "motorcycle": 16.2,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "270x480",
+            "simulated_fps": 29.9,
+            "processing_speed": 19.21
+        }
+    },
+    "480p_20fps": {
+        "counts": {
+            "car": 518,
+            "bus": 32,
+            "truck": 42,
+            "motorcycle": 127,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.601,
+            "bus": 0.6507,
+            "truck": 0.5488,
+            "motorcycle": 0.5352,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 54.7,
+            "bus": 23.0,
+            "truck": 11.6,
+            "motorcycle": 16.2,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "270x480",
+            "simulated_fps": 20,
+            "processing_speed": 19.03
+        }
+    },
+    "480p_10fps": {
+        "counts": {
+            "car": 444,
+            "bus": 24,
+            "truck": 31,
+            "motorcycle": 99,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.5928,
+            "bus": 0.6497,
+            "truck": 0.5533,
+            "motorcycle": 0.5294,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 21.2,
+            "bus": 10.1,
+            "truck": 5.5,
+            "motorcycle": 6.8,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "270x480",
+            "simulated_fps": 10,
+            "processing_speed": 6.52
+        }
+    },
+    "480p_5fps": {
+        "counts": {
+            "car": 380,
+            "bus": 19,
+            "truck": 19,
+            "motorcycle": 88,
+            "auto_rickshaw": 0
+        },
+        "avg_confidence": {
+            "car": 0.5962,
+            "bus": 0.6732,
+            "truck": 0.5656,
+            "motorcycle": 0.5164,
+            "auto_rickshaw": 0.0
+        },
+        "avg_lifespan": {
+            "car": 12.3,
+            "bus": 6.4,
+            "truck": 4.4,
+            "motorcycle": 3.9,
+            "auto_rickshaw": 0.0
+        },
+        "metadata": {
+            "resolution": "270x480",
+            "simulated_fps": 5,
+            "processing_speed": 3.39
+        }
+    }
+}

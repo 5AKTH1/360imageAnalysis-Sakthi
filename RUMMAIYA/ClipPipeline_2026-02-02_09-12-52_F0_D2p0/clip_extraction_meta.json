@@ -1,0 +1,15 @@
+{
+    "folder_path": "D:\\MUMMAS DATA COLLECTION\\02022026\\run_20260202_091252_2998",
+    "frame_no": 0,
+    "fps": 30.000299969840455,
+    "start_ist_str": "2026-02-02T09:12:52.777831",
+    "source_folder": "run_20260202_091252_2998",
+    "ist_time": "Manual_Input",
+    "is_manual": true,
+    "playback_time_sec": "0.000",
+    "clip_duration_sec": 2.0,
+    "imu_data": null,
+    "utc_time": null,
+    "unix_time": 0,
+    "undistortion_time_sec": 115.4967
+}

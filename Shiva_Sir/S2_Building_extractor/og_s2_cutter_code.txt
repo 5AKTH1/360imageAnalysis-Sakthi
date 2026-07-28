@@ -1,0 +1,185 @@
+import os
+import pandas as pd
+from shapely.geometry import Point, Polygon
+
+# QGIS Imports
+from qgis.core import (
+    QgsProject,
+    QgsVectorLayer,
+    QgsWkbTypes,
+    Qgis,
+    QgsGuiUtils
+)
+from qgis.gui import QgsMapTool, QgsRubberBand
+from qgis.PyQt.QtCore import Qt, pyqtSignal
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtWidgets import QAction
+
+# Import the dialog class created by Plugin Builder
+from .s2_cutter_dialog import S2CutterDialog
+
+# --- CUSTOM MAP TOOL FOR DRAWING POLYGONS ---
+class PolygonMapTool(QgsMapTool):
+    polygonCreated = pyqtSignal(object)
+
+    def __init__(self, canvas):
+        QgsMapTool.__init__(self, canvas)
+        self.canvas = canvas
+        self.rubberBand = QgsRubberBand(self.canvas, QgsWkbTypes.PolygonGeometry)
+        self.rubberBand.setColor(QColor(255, 0, 0, 100)) 
+        self.rubberBand.setWidth(2)
+        self.points = []
+
+    def activate(self):
+        self.points = []
+        self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
+        self.canvas.setCursor(Qt.CrossCursor)
+
+    def canvasPressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            point = self.toMapCoordinates(event.pos())
+            self.points.append(point)
+            self.rubberBand.addPoint(point, True)
+            self.rubberBand.show()
+        elif event.button() == Qt.RightButton:
+            if len(self.points) > 2:
+                self.closePolygon()
+            else:
+                self.reset()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Backspace or event.key() == Qt.Key_Delete:
+            if len(self.points) > 0:
+                self.points.pop()
+                self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
+                for pt in self.points:
+                    self.rubberBand.addPoint(pt, True)
+                self.rubberBand.show()
+
+    def closePolygon(self):
+        geometry = self.rubberBand.asGeometry()
+        self.polygonCreated.emit(geometry)
+        self.reset()
+
+    def reset(self):
+        self.points = []
+        self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
+        self.canvas.setCursor(Qt.ArrowCursor)
+        self.canvas.unsetMapTool(self)
+
+# --- MAIN PLUGIN CLASS ---
+class S2Cutter:
+    def __init__(self, iface):
+        self.iface = iface
+        self.canvas = iface.mapCanvas()
+        self.dlg = S2CutterDialog() # Initialize the UI
+        self.map_tool = None
+        self.action = None
+        self.selected_input_file = ""
+
+        # Connect UI Buttons
+        self.dlg.browseButton.clicked.connect(self.select_input_file)
+
+    def initGui(self):
+        self.action = QAction("S2 Cutter Tool", self.iface.mainWindow())
+        self.action.setObjectName("S2CutterAction")
+        self.action.triggered.connect(self.run)
+        self.iface.addToolBarIcon(self.action)
+        self.iface.addPluginToMenu("&S2 Cutter", self.action)
+
+    def unload(self):
+        if self.action:
+            self.iface.removeToolBarIcon(self.action)
+            self.iface.removePluginMenu("&S2 Cutter", self.action)
+
+    def select_input_file(self):
+        # User selects the downloaded S2 CSV
+        filename, _ = QgsGuiUtils.getOpenFileName(
+            self.dlg, "Select S2 CSV File", "", "CSV files (*.csv *.csv.gz)"
+        )
+        if filename:
+            self.dlg.inputPathLineEdit.setText(filename)
+            self.selected_input_file = filename
+
+    def run(self):
+        # Step 1: Prompt tile selection by loading geojson
+        plugin_dir = os.path.dirname(__file__)
+        tiles_path = os.path.join(plugin_dir, "tiles.geojson")
+        
+        if os.path.exists(tiles_path):
+            tiles_layer = QgsVectorLayer(tiles_path, "Select S2 Tile for Download", "ogr")
+            QgsProject.instance().addMapLayer(tiles_layer)
+            self.iface.messageBar().pushMessage("Step 1", "Click a tile on the map to find its download URL in the attributes.", Qgis.Info)
+        
+        # Show UI
+        self.dlg.show()
+        self.dlg.statusLabel.setText("Status: Ready. Please select input and draw polygon.")
+
+        # Step 2: Activate Drawing Tool
+        self.map_tool = PolygonMapTool(self.canvas)
+        self.map_tool.polygonCreated.connect(self.process_extraction)
+        self.canvas.setMapTool(self.map_tool)
+    
+    def process_extraction(self, qgis_geometry):
+        # Step 2 Check: Did user provide an output name?
+        out_name = self.dlg.outputNameLineEdit.text().strip()
+        if not out_name:
+            self.iface.messageBar().pushMessage("Error", "Please enter an output file name in the UI.", Qgis.Warning)
+            return
+        
+        if not self.selected_input_file:
+            self.iface.messageBar().pushMessage("Error", "Please browse and select the downloaded S2 file.", Qgis.Warning)
+            return
+
+        # Prepare output path
+        output_csv = os.path.join(os.path.expanduser("~"), "Documents", f"{out_name}.csv")
+        
+        self.dlg.statusLabel.setText("Status: Processing...")
+        self.dlg.progressBar.setValue(0)
+
+        # Handle Geometry
+        if qgis_geometry.isMultipart():
+            points = qgis_geometry.asMultiPolygon()[0][0]
+        else:
+            points = qgis_geometry.asPolygon()[0]
+
+        user_polygon = Polygon([(p.x(), p.y()) for p in points])
+        chunk_size = 100000
+        header_written = False
+        
+        if os.path.exists(output_csv):
+            try: os.remove(output_csv)
+            except: pass 
+
+        try:
+            # Pandas handles .gz automatically
+            with pd.read_csv(self.selected_input_file, chunksize=chunk_size) as reader:
+                count = 0
+                for chunk in reader:
+                    mask = [user_polygon.covers(Point(lon, lat)) for lon, lat in zip(chunk["longitude"], chunk["latitude"])]
+                    filtered_chunk = chunk[mask]
+                    
+                    if not filtered_chunk.empty:
+                        filtered_chunk.to_csv(output_csv, mode="a", index=False, header=not header_written)
+                        header_written = True
+                        count += len(filtered_chunk)
+                    
+                    # Update progress bar (simulated)
+                    val = self.dlg.progressBar.value()
+                    if val < 95: self.dlg.progressBar.setValue(val + 5)
+                        
+            self.dlg.progressBar.setValue(100)
+            self.dlg.statusLabel.setText(f"Status: Success! Found {count} buildings.")
+            self.load_result_layer(output_csv, out_name)
+
+        except Exception as e:
+            self.dlg.statusLabel.setText(f"Status: Error - {str(e)}")
+
+    def load_result_layer(self, path, name):
+        uri = f"file:///{path}?delimiter=,&wktField=geometry&crs=epsg:4326"
+        result_layer = QgsVectorLayer(uri, name, "delimitedtext")
+        if result_layer.isValid():
+            symbol = result_layer.renderer().symbol()
+            symbol.setColor(QColor("blue"))
+            symbol.setOpacity(0.5)
+            QgsProject.instance().addMapLayer(result_layer)

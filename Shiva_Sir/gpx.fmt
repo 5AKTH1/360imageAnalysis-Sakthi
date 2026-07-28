@@ -1,0 +1,13 @@
+# [HEAD]<?xml version="1.0" encoding="UTF-8"?>
+# [HEAD]<gpx version="1.1" creator="ExifTool" xmlns="http://www.topografix.com/GPX/1/1">
+# [HEAD]  <trk>
+# [HEAD]    <name>$filename</name>
+# [HEAD]    <trkseg>
+# [BODY]      <trkpt lat="$gpslatitude#" lon="$gpslongitude#">
+# [BODY]        <ele>$gpsaltitude#</ele>
+# [BODY]        <time>${gpsdatetime#;my ($ss)=/\.0*(\d+)/;$_=s/\.\d+//;s/Z$/.$ss/}Z</time>
+# [BODY]        <speed>$gpsspeed#</speed>
+# [BODY]      </trkpt>
+# [TAIL]    </trkseg>
+# [TAIL]  </trk>
+# [TAIL]</gpx>

@@ -1,0 +1,26 @@
+{
+    "undistorted_lens1.mp4": {
+        "counts": {
+            "auto_rickshaw": 130,
+            "car": 219,
+            "bus": 20,
+            "truck": 0,
+            "motorcycle": 18,
+            "bicycle": 0
+        },
+        "avg_confidence": {
+            "auto_rickshaw": 0.6394,
+            "car": 0.7207,
+            "bus": 0.5703,
+            "truck": 0.0,
+            "motorcycle": 0.5688,
+            "bicycle": 0.0
+        },
+        "metadata": {
+            "timestamp": "2026-02-05 17:52:46",
+            "resolution": "2160x3840",
+            "fps": 29.9,
+            "total_frames": 8969
+        }
+    }
+}

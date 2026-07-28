@@ -1,0 +1,32 @@
+{
+    "Lens 3 to Lens 2": {
+        "left_bound": 199,
+        "right_bound": 421,
+        "width_pixels": 222
+    },
+    "Lens 2 to Lens 1": {
+        "left_bound": 707,
+        "right_bound": 862,
+        "width_pixels": 155
+    },
+    "Lens 1 to Lens 6": {
+        "left_bound": 1297,
+        "right_bound": 1482,
+        "width_pixels": 185
+    },
+    "Lens 6 to Lens 5": {
+        "left_bound": 1891,
+        "right_bound": 2059,
+        "width_pixels": 168
+    },
+    "Lens 5 to Lens 4": {
+        "left_bound": 2381,
+        "right_bound": 2569,
+        "width_pixels": 188
+    },
+    "Lens 4 to Lens 3": {
+        "left_bound": 2991,
+        "right_bound": 3121,
+        "width_pixels": 130
+    }
+}
