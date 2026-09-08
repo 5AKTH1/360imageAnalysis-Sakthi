@@ -1,55 +1,45 @@
-# Virtual environment
-.venv/
+# =========================
+# Python
+# =========================
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.ipynb_checkpoints/
+*.py[cod]
+*.class
 
-# Large installers and executables
-*.exe
-*.zip
-*.tar.gz
-*.rar
-*.msi
-*.gz
+# =========================
+# Virtual Environments
+# =========================
+.venv/
+venv/
+env/
 
-# Model weights
-*.pt
-*.onnx
-*.engine
+# =========================
+# VS Code
+# =========================
+.vscode/
 
-# Heavy video and image assets
+# =========================
+# Large Video Files
+# =========================
 *.mp4
 *.avi
-*.mkv
 *.mov
-*.jpg
-*.jpeg
-*.png
-*.gif
+*.mkv
 
-# Large data/CSV/XML/TXT directories or files
-IMU-GPS/
-CAMERA_Short_Clips/
-DATA_RETRIEVAL_TASK/
-Results/
-*.csv
-*.xlsx
-*.xls
-*.gpx
-
-# Presentations/Docs (some are extremely large, e.g. 9GB PPTX)
-presentations/*.pptx
-presentations/*.pdf
-presentations/*.docx
-presentations/~$*.docx
-presentations/*.tmp
-
-# Datasets and training runs (YOLO/SAHI)
-[Dd]atasets/
+# =========================
+# Output / Generated Files
+# =========================
+OUTPUT/
+TEST_OUTPUT/
 runs/
 
-# OS metadata
-.DS_Store
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Windows / OS Files
+# =========================
 Thumbs.db
+Desktop.ini
+.DS_Store

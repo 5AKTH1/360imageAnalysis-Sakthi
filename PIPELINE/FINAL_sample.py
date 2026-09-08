@@ -11,6 +11,7 @@ import traceback
 from collections import defaultdict, Counter
 import select
 import sys
+import re
 import concurrent.futures
 import queue
 import threading
@@ -252,39 +253,647 @@ def process_and_undistort(frame, K_orig, D, xi, orig_size, fov_scale=0.4, downsc
     except cv2.error as e:
         return None, None, None, None
 
-def parse_target_timestamp(ts_str):
-    """Dynamically detects and parses IST, UTC, and Unix timestamp strings to standard IST."""
-    ts_str = str(ts_str).strip()
-    
-    # Try standard IST
+def parse_robust_datetime(ts_str):
+    """Robustly parses timestamps across ISO formats, Unix timestamps, and date strings."""
+    if not ts_str:
+        return None
+    if isinstance(ts_str, (int, float)):
+        try:
+            return datetime.fromtimestamp(ts_str, timezone.utc)
+        except Exception:
+            return None
+    s = str(ts_str).strip()
     try:
-        return datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
+        val = float(s)
+        if 1000000000 <= val <= 2500000000:
+            return datetime.fromtimestamp(val, timezone.utc)
     except ValueError:
         pass
-        
-    # Try Unix
+    clean = s.replace("Z", "+00:00").replace("z", "+00:00")
     try:
-        unix_val = float(ts_str)
-        # Convert unix to UTC then to IST
-        utc_dt = datetime.fromtimestamp(unix_val, timezone.utc)
+        dt = datetime.fromisoformat(clean)
+        return dt
+    except Exception:
+        pass
+    clean = s.replace("T", " ").replace("Z", "").replace("z", "").strip()
+    for fmt in [
+        "%Y-%m-%d %H:%M:%S.%f",
+        "%Y-%m-%d %H:%M:%S",
+        "%d-%m-%Y %H:%M:%S.%f",
+        "%d-%m-%Y %H:%M:%S",
+        "%d/%m/%Y %H:%M:%S.%f",
+        "%d/%m/%Y %H:%M:%S",
+        "%Y/%m/%d %H:%M:%S",
+        "%Y%m%d_%H%M%S",
+    ]:
+        try:
+            return datetime.strptime(clean, fmt)
+        except ValueError:
+            pass
+    return None
+
+def parse_utc_to_ist(utc_str):
+    """Converts UTC / ISO timestamp string to IST datetime object."""
+    if not utc_str:
+        return None
+    dt = parse_robust_datetime(utc_str)
+    if not dt:
+        return None
+    if dt.tzinfo is not None:
+        utc_dt = dt.astimezone(timezone.utc)
         ist_dt = utc_dt + timedelta(hours=5, minutes=30)
         return ist_dt.replace(tzinfo=None)
-    except ValueError:
-        pass
-        
-    # Try typical UTC ISO format
+    else:
+        return dt + timedelta(hours=5, minutes=30)
+
+def parse_timestamp_from_run_name(folder_name):
+    """Extracts timestamp from session folder name (e.g. run_20260131_121529_5450)."""
+    m = re.search(r'run_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})', str(folder_name))
+    if m:
+        try:
+            return datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)),
+                            int(m.group(4)), int(m.group(5)), int(m.group(6)))
+        except Exception:
+            pass
+    return None
+
+def parse_target_timestamp(ts_str):
+    """Dynamically detects and parses IST, UTC, and Unix timestamp strings to standard IST."""
+    if not ts_str:
+        return None
+    ts_str = str(ts_str).strip()
+    
+    # Try Unix float
     try:
-        clean_str = ts_str.replace("T", " ").replace("Z", "")
-        utc_dt = datetime.strptime(clean_str, "%Y-%m-%d %H:%M:%S")
-        return utc_dt + timedelta(hours=5, minutes=30)
+        unix_val = float(ts_str)
+        if 1000000000 <= unix_val <= 2500000000:
+            utc_dt = datetime.fromtimestamp(unix_val, timezone.utc)
+            ist_dt = utc_dt + timedelta(hours=5, minutes=30)
+            return ist_dt.replace(tzinfo=None)
     except ValueError:
         pass
 
+    # Try ISO with timezone
+    clean_iso = ts_str.replace("Z", "+00:00").replace("z", "+00:00")
+    try:
+        dt = datetime.fromisoformat(clean_iso)
+        if dt.tzinfo is not None:
+            utc_dt = dt.astimezone(timezone.utc)
+            return (utc_dt + timedelta(hours=5, minutes=30)).replace(tzinfo=None)
+    except Exception:
+        pass
+
+    # Try standard string formats
+    clean_str = ts_str.replace("T", " ").replace("Z", "").replace("z", "").strip()
+    for fmt in [
+        "%Y-%m-%d %H:%M:%S.%f",
+        "%Y-%m-%d %H:%M:%S",
+        "%d-%m-%Y %H:%M:%S.%f",
+        "%d-%m-%Y %H:%M:%S",
+        "%d/%m/%Y %H:%M:%S.%f",
+        "%d/%m/%Y %H:%M:%S",
+        "%Y/%m/%d %H:%M:%S",
+        "%Y%m%d_%H%M%S"
+    ]:
+        try:
+            return datetime.strptime(clean_str, fmt)
+        except ValueError:
+            pass
+
     return None
+
+# ==========================================
+# CLASS & LCZ CATEGORIZATION HELPERS
+# ==========================================
+
+def sanitize_folder_name(name):
+    """
+    Sanitizes class name for safe directory naming across Windows and POSIX filesystems.
+    Strips illegal characters (< > : " / \\ | ? *) while preserving spaces, hyphens, and parentheses.
+    """
+    if not name:
+        return "Unclassified"
+    clean = re.sub(r'[<>:"/\\|?*]', '_', str(name)).strip()
+    return clean if clean else "Unclassified"
+
+def extract_class_name(row_dict):
+    """
+    Extracts class name (such as LCZ Class) from a row dictionary or mapping.
+    Detects headers: 'LCZ Class', 'lcz_class', 'lcz', 'class', 'category',
+    'class_name', 'classname', 'label', 'type'.
+    """
+    if not isinstance(row_dict, dict):
+        return None
+    for k, v in row_dict.items():
+        k_clean = str(k).strip().lower()
+        if k_clean in ['lcz class', 'lcz_class', 'lcz', 'class', 'category', 'class_name', 'classname', 'label', 'type']:
+            val = str(v).strip()
+            if val and val.lower() not in ['nan', 'none', '']:
+                return val
+    return None
+
+def auto_detect_class_from_csvs(target_dt, candidate_csvs=None):
+    """
+    Attempts to auto-detect LCZ / class name for a given datetime from known CSV spreadsheets.
+    """
+    if candidate_csvs is None:
+        candidate_csvs = [
+            r"D:\MUMMAS\output_converted_timestamp_60sec.csv",
+            r"D:\MUMMAS\test_camera_timestamps.csv",
+            r"D:\MUMMAS\output_converted_timestamp_60sec_processed.csv",
+            r"D:\MUMMAS\test_camera_timestamps_processed.csv"
+        ]
+    
+    if not target_dt or 'pd' not in globals():
+        return None
+
+    target_str = target_dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    for c_path in candidate_csvs:
+        if not c_path or not os.path.exists(c_path):
+            continue
+        try:
+            df = pd.read_csv(c_path)
+            cls_col = next((c for c in df.columns if str(c).strip().lower() in ['lcz class', 'lcz_class', 'lcz', 'class', 'category']), None)
+            ts_col = next((c for c in df.columns if str(c).strip().lower() in ['timestamp', 'target_time', 'datetime', 'time']), None)
+            if not cls_col or not ts_col:
+                continue
+
+            match = df[df[ts_col].astype(str).str.strip() == target_str]
+            if not match.empty:
+                val = match.iloc[0][cls_col]
+                if pd.notna(val) and str(val).strip():
+                    return str(val).strip()
+
+            for _, r in df.iterrows():
+                try:
+                    r_dt = parse_target_timestamp(str(r[ts_col]))
+                    if r_dt and abs((r_dt - target_dt).total_seconds()) <= 2.0:
+                        val = r[cls_col]
+                        if pd.notna(val) and str(val).strip():
+                            return str(val).strip()
+                except Exception:
+                    pass
+        except Exception:
+            continue
+
+    return None
+
+def sync_to_class_folder(src_pipeline_dir, root_output, class_name):
+    """
+    Categorizes stitched panoramic and undistorted images from src_pipeline_dir into:
+    root_output / Class Names / <Sanitized_Class_Name> / Panoramic / <Pipeline_Folder_Name> / Final_Static_Stitch.jpg
+    root_output / Class Names / <Sanitized_Class_Name> / Undistorted / <Pipeline_Folder_Name> / undistorted_LENS*.jpg
+
+    Strictly retains ONLY image files inside Panoramic and Undistorted folders.
+    Excludes all JSON metadata, detection annotations, and INTRINSICS calibration files.
+    Retains the exact same image and file names without any renaming.
+    Uses hardlinks on NTFS when possible (0 disk space overhead) with copy fallback.
+    """
+    if not class_name or not os.path.exists(src_pipeline_dir):
+        return None
+
+    clean_class = sanitize_folder_name(class_name)
+    folder_basename = os.path.basename(os.path.normpath(src_pipeline_dir))
+    class_root = os.path.join(root_output, "Class Names", clean_class)
+    
+    pano_dir = os.path.join(class_root, "Panoramic", folder_basename)
+    undist_dir = os.path.join(class_root, "Undistorted", folder_basename)
+
+    # Stitched panorama file targets (raw stitched panorama only)
+    pano_candidates = [
+        "Final_Static_Stitch.jpg",
+        "Final_Stitch.mp4",
+        "Final_Static_Stitch.mp4"
+    ]
+
+    def _transfer_file(src, dst):
+        if not os.path.exists(src):
+            return
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        if os.path.exists(dst):
+            if os.path.getsize(src) == os.path.getsize(dst):
+                return
+            try:
+                os.remove(dst)
+            except Exception:
+                pass
+        try:
+            os.link(src, dst)
+        except Exception:
+            try:
+                shutil.copy2(src, dst)
+            except Exception as e:
+                UI.warn(f"Failed to copy {os.path.basename(src)} to class directory: {e}")
+
+    # 1. Sync Panoramic stitched image(s)
+    for p_name in pano_candidates:
+        src_pano = os.path.join(src_pipeline_dir, p_name)
+        if os.path.exists(src_pano):
+            _transfer_file(src_pano, os.path.join(pano_dir, p_name))
+
+    # 2. Sync Undistorted lens images (undistorted_LENS1..6.jpg or .mp4)
+    src_undist_folder = os.path.join(src_pipeline_dir, "undistorted")
+    if os.path.exists(src_undist_folder):
+        for f in os.listdir(src_undist_folder):
+            if f.lower().endswith(('.jpg', '.jpeg', '.png', '.mp4')):
+                _transfer_file(os.path.join(src_undist_folder, f), os.path.join(undist_dir, f))
+    else:
+        for i in range(1, 7):
+            for ext in ['.jpg', '.mp4', '.png']:
+                u_name = f"undistorted_LENS{i}{ext}"
+                src_u = os.path.join(src_pipeline_dir, u_name)
+                if os.path.exists(src_u):
+                    _transfer_file(src_u, os.path.join(undist_dir, u_name))
+
+    return class_root
+
+def categorize_existing_results(root_output, csv_path=None, verbose=True):
+    """
+    Retroactively scans root_output for unclassified 'Pipeline_*' directories,
+    maps their timestamps to LCZ classes using reference CSV spreadsheets,
+    and synchronizes them into categorized 'Class Names / <Class_Name> / Panoramic'
+    and 'Class Names / <Class_Name> / Undistorted' folders with images only.
+    """
+    if not os.path.exists(root_output):
+        if verbose:
+            UI.error(f"Output directory does not exist: {root_output}")
+        return {}
+
+    candidate_csvs = []
+    if csv_path and os.path.exists(csv_path):
+        candidate_csvs.append(csv_path)
+    candidate_csvs.extend([
+        r"D:\MUMMAS\output_converted_timestamp_60sec.csv",
+        r"D:\MUMMAS\test_camera_timestamps.csv",
+        r"D:\MUMMAS\output_converted_timestamp_60sec_processed.csv",
+        r"D:\MUMMAS\test_camera_timestamps_processed.csv"
+    ])
+
+    # Build timestamp -> class lookup map
+    ts_map = {}
+    if 'pd' in globals():
+        for cp in candidate_csvs:
+            if not cp or not os.path.exists(cp):
+                continue
+            try:
+                df = pd.read_csv(cp)
+                cls_col = next((c for c in df.columns if str(c).strip().lower() in ['lcz class', 'lcz_class', 'lcz', 'class', 'category']), None)
+                ts_col = next((c for c in df.columns if str(c).strip().lower() in ['timestamp', 'target_time', 'datetime', 'time']), None)
+                if cls_col and ts_col:
+                    for _, row in df.iterrows():
+                        t_val = str(row[ts_col]).strip()
+                        c_val = str(row[cls_col]).strip()
+                        if t_val and c_val and c_val.lower() not in ['nan', 'none', '']:
+                            if t_val not in ts_map:
+                                ts_map[t_val] = c_val
+            except Exception:
+                continue
+
+    pipeline_dirs = [d for d in os.listdir(root_output) if d.startswith("Pipeline_") and os.path.isdir(os.path.join(root_output, d))]
+    if verbose:
+        print(f"\n{UI.CYAN}[INFO] Found {len(pipeline_dirs)} session folders to categorize in {root_output}...{UI.RESET}")
+
+    categorized_counts = {}
+    for d in pipeline_dirs:
+        dir_path = os.path.join(root_output, d)
+        matched_class = None
+
+        # 1. Check existing static_stitched_meta.json
+        meta_file = os.path.join(dir_path, "static_stitched_meta.json")
+        if os.path.exists(meta_file):
+            try:
+                with open(meta_file, 'r', encoding='utf-8') as mf:
+                    meta_data = json.load(mf)
+                    matched_class = meta_data.get("lcz_class") or meta_data.get("class_name")
+                    if not matched_class and meta_data.get("ist_time"):
+                        t_ist = meta_data.get("ist_time")
+                        matched_class = ts_map.get(t_ist)
+            except Exception:
+                pass
+
+        # 2. Match from directory timestamp
+        if not matched_class:
+            try:
+                time_str = d.split('_F')[0].replace("Pipeline_", "")
+                dt = datetime.strptime(time_str, "%Y-%m-%d_%H-%M-%S")
+                formatted_ts = dt.strftime("%Y-%m-%d %H:%M:%S")
+                matched_class = ts_map.get(formatted_ts)
+                if not matched_class:
+                    for t_key, c_val in ts_map.items():
+                        try:
+                            key_dt = parse_target_timestamp(t_key)
+                            if key_dt and abs((key_dt - dt).total_seconds()) <= 2.0:
+                                matched_class = c_val
+                                break
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+
+        if matched_class:
+            sync_to_class_folder(dir_path, root_output, matched_class)
+            categorized_counts[matched_class] = categorized_counts.get(matched_class, 0) + 1
+            # Update meta with class if missing
+            if os.path.exists(meta_file):
+                try:
+                    with open(meta_file, 'r', encoding='utf-8') as mf:
+                        m_curr = json.load(mf)
+                    if 'lcz_class' not in m_curr:
+                        m_curr['lcz_class'] = matched_class
+                        m_curr['class_name'] = matched_class
+                        with open(meta_file, 'w', encoding='utf-8') as mf:
+                            json.dump(m_curr, mf, indent=4)
+                except Exception:
+                    pass
+
+    # Clean up old legacy top-level class folders directly in root_output if present
+    known_legacy_classes = [
+        "Compact low-rise (LCZ 3)", "Open low-rise (LCZ 6)", "Large low-rise (LCZ 8)",
+        "Sparsely built (LCZ 9)", "Low plants (LCZ 14)", "TEST"
+    ]
+    for leg in known_legacy_classes:
+        leg_dir = os.path.join(root_output, sanitize_folder_name(leg))
+        if os.path.isdir(leg_dir):
+            try:
+                shutil.rmtree(leg_dir, ignore_errors=True)
+            except Exception:
+                pass
+
+    if verbose:
+        UI.success(f"Categorization Complete! Organized {sum(categorized_counts.values())}/{len(pipeline_dirs)} folders into 'Class Names':")
+        for cls_name, cnt in sorted(categorized_counts.items()):
+            print(f"  📁 Class Names/{cls_name}: {cnt} session(s) [Panoramic/ & Undistorted/]")
+
+    return categorized_counts
+
+class GPSResolver:
+    """
+    Indexes GPS coordinates from IMU/GPS CSV logs and provides
+    fast spatial nearest-neighbor lookups to map (lat, lon) -> timestamp.
+    """
+    _index_cache = {}
+
+    @staticmethod
+    def haversine_distance_m(lat1, lon1, lat2, lon2):
+        """Calculates great-circle distance between two points in meters."""
+        R = 6371000.0 # Earth radius in meters
+        phi1 = np.radians(lat1)
+        phi2 = np.radians(lat2)
+        dphi = np.radians(lat2 - lat1)
+        dlambda = np.radians(lon2 - lon1)
+        a = np.sin(dphi / 2.0)**2 + np.cos(phi1) * np.cos(phi2) * np.sin(dlambda / 2.0)**2
+        c = 2.0 * np.arctan2(np.sqrt(a), np.sqrt(1.0 - a))
+        return float(R * c)
+
+    @classmethod
+    def find_imu_csv_files(cls, base_dirs):
+        if isinstance(base_dirs, str):
+            base_dirs = [base_dirs]
+        
+        found_files = []
+        valid_kw = {'imu', 'imu-gps', 'imugps', 'imu_gps', 'gps'}
+
+        for b_dir in base_dirs:
+            if not b_dir or not os.path.exists(b_dir):
+                continue
+            for root, dirs, files in os.walk(b_dir):
+                root_parts = [p.lower() for p in os.path.normpath(root).split(os.sep)]
+                is_imu_folder = any(kw in root_parts for kw in valid_kw)
+                
+                for f in files:
+                    if not f.lower().endswith('.csv') or f.startswith('._') or f.startswith('~'):
+                        continue
+                    f_lower = f.lower()
+                    if is_imu_folder or 'imu' in f_lower or 'gps' in f_lower:
+                        found_files.append(os.path.join(root, f))
+                        
+        return list(set(found_files))
+
+    @classmethod
+    def build_index(cls, search_dirs=None, verbose=True):
+        if search_dirs is None:
+            dirs_to_check = []
+        elif isinstance(search_dirs, str):
+            dirs_to_check = [search_dirs]
+        else:
+            dirs_to_check = list(search_dirs)
+
+        dirs_to_check = [os.path.normpath(d) for d in dirs_to_check if d and os.path.exists(d)]
+        if not dirs_to_check:
+            default_mummas = r"D:\MUMMAS\MUMMAS DATA COLLECTION"
+            if os.path.exists(default_mummas):
+                dirs_to_check.append(os.path.normpath(default_mummas))
+            if os.path.exists(HARD_DRIVE_ROOT) and os.path.normpath(HARD_DRIVE_ROOT) not in dirs_to_check:
+                dirs_to_check.append(os.path.normpath(HARD_DRIVE_ROOT))
+
+        cache_key = tuple(sorted(dirs_to_check))
+        if cache_key in cls._index_cache:
+            return cls._index_cache[cache_key]
+
+        csv_files = cls.find_imu_csv_files(dirs_to_check)
+        if not csv_files:
+            if verbose:
+                UI.warn("No IMU GPS CSV files found in search directories.")
+            return None
+
+        if verbose:
+            print(f"{UI.CYAN}[INFO] Indexing GPS coordinates from {len(csv_files)} IMU CSV file(s)...{UI.RESET}")
+
+        all_coords = []
+        all_timestamps = []
+        all_sources = []
+
+        for c_file in csv_files:
+            try:
+                # 1. Detect headers from file
+                lat_col, lon_col, time_col, time_mode = None, None, None, 'local'
+                with open(c_file, 'r', encoding='utf-8', errors='ignore') as f:
+                    for line in f:
+                        line_s = line.strip()
+                        if not line_s or line_s.startswith('#'):
+                            continue
+                        headers = [h.strip() for h in line_s.split(',')]
+                        for c in headers:
+                            clow = c.lower().strip()
+                            if clow in ['gnss_latitude', 'filter_lla_lat', 'latitude', 'lat', 'y'] and not lat_col:
+                                lat_col = c
+                            elif clow in ['gnss_longitude', 'filter_lla_lon', 'longitude', 'lon', 'long', 'x'] and not lon_col:
+                                lon_col = c
+                            elif not time_col:
+                                if any(k in clow for k in ['timestamp_local', 'local_timestamp', 'timestamp_ist', 'ist_timestamp']):
+                                    time_col = c; time_mode = 'local'
+                                elif any(k in clow for k in ['timestamp_utc', 'utc_timestamp', 'timestamp_gmt']):
+                                    time_col = c; time_mode = 'utc'
+                                elif any(k in clow for k in ['t_unix', 'unix_timestamp', 'epoch', 'unix_time']):
+                                    time_col = c; time_mode = 'unix'
+                                elif clow in ['timestamp', 'time']:
+                                    time_col = c; time_mode = 'local'
+                        break
+
+                if not lat_col or not lon_col or not time_col:
+                    continue
+
+                # 2. Fast pandas ingestion if available
+                used_pandas = False
+                if 'pd' in globals():
+                    try:
+                        df = pd.read_csv(c_file, comment='#', usecols=[lat_col, lon_col, time_col], on_bad_lines='skip', low_memory=False)
+                        df[lat_col] = pd.to_numeric(df[lat_col], errors='coerce')
+                        df[lon_col] = pd.to_numeric(df[lon_col], errors='coerce')
+                        df = df.dropna(subset=[lat_col, lon_col, time_col])
+                        df = df[(df[lat_col] != 0.0) | (df[lon_col] != 0.0)]
+                        
+                        # Subsample high-frequency data down to ~5-10Hz to keep spatial index fast and lean
+                        if len(df) > 5000:
+                            df = df.iloc[::10]
+
+                        lats = df[lat_col].to_numpy()
+                        lons = df[lon_col].to_numpy()
+                        raw_times = df[time_col].astype(str).tolist()
+
+                        for lat_v, lon_v, r_time in zip(lats, lons, raw_times):
+                            r_time = r_time.strip()
+                            if time_mode == 'unix':
+                                try:
+                                    u_val = float(r_time)
+                                    u_dt = datetime.fromtimestamp(u_val, timezone.utc)
+                                    ist_str = (u_dt + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
+                                except ValueError:
+                                    continue
+                            elif time_mode == 'utc' or r_time.endswith('Z') or r_time.endswith('z'):
+                                try:
+                                    clean_utc = r_time.replace("T", " ").replace("Z", "").replace("z", "").split('.')[0]
+                                    u_dt = datetime.strptime(clean_utc, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                                    ist_str = (u_dt + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
+                                except ValueError:
+                                    continue
+                            else:
+                                ist_str = r_time.replace("T", " ").split('.')[0]
+
+                            all_coords.append((float(lat_v), float(lon_v)))
+                            all_timestamps.append(ist_str)
+                            all_sources.append(c_file)
+                        
+                        used_pandas = True
+                    except Exception:
+                        used_pandas = False
+
+                # 3. Fallback to standard csv DictReader
+                if not used_pandas:
+                    def skip_comments(f_obj):
+                        for line in f_obj:
+                            if line.strip() and not line.strip().startswith('#'):
+                                yield line
+
+                    with open(c_file, 'r', encoding='utf-8', errors='ignore') as f:
+                        reader = csv.DictReader(skip_comments(f))
+                        for row in reader:
+                            raw_lat = row.get(lat_col, '').strip()
+                            raw_lon = row.get(lon_col, '').strip()
+                            raw_time = row.get(time_col, '').strip()
+
+                            if not raw_lat or not raw_lon or not raw_time:
+                                continue
+
+                            try:
+                                lat_val = float(raw_lat)
+                                lon_val = float(raw_lon)
+                                if lat_val == 0.0 and lon_val == 0.0:
+                                    continue
+                            except ValueError:
+                                continue
+
+                            if time_mode == 'unix':
+                                try:
+                                    u_val = float(raw_time)
+                                    u_dt = datetime.fromtimestamp(u_val, timezone.utc)
+                                    ist_str = (u_dt + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
+                                except ValueError:
+                                    continue
+                            elif time_mode == 'utc' or raw_time.endswith('Z') or raw_time.endswith('z'):
+                                try:
+                                    clean_utc = raw_time.replace("T", " ").replace("Z", "").replace("z", "").split('.')[0]
+                                    u_dt = datetime.strptime(clean_utc, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                                    ist_str = (u_dt + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
+                                except ValueError:
+                                    continue
+                            else:
+                                ist_str = raw_time.replace("T", " ").split('.')[0]
+
+                            all_coords.append((lat_val, lon_val))
+                            all_timestamps.append(ist_str)
+                            all_sources.append(c_file)
+
+            except Exception:
+                continue
+
+        if not all_coords:
+            if verbose:
+                UI.warn("No valid GPS fixes extracted from IMU files.")
+            return None
+
+        coords_arr = np.array(all_coords, dtype=np.float64)
+        mean_lat = np.mean(coords_arr[:, 0])
+        cos_lat = np.cos(np.radians(mean_lat))
+        metric_proj = np.column_stack([coords_arr[:, 0] * 111320.0, coords_arr[:, 1] * 111320.0 * cos_lat])
+        
+        try:
+            from scipy.spatial import cKDTree
+            tree = cKDTree(metric_proj)
+        except ImportError:
+            tree = None
+
+        index_data = {
+            "coords": coords_arr,
+            "metric_proj": metric_proj,
+            "mean_lat": mean_lat,
+            "cos_lat": cos_lat,
+            "timestamps": all_timestamps,
+            "sources": all_sources,
+            "tree": tree
+        }
+        cls._index_cache[cache_key] = index_data
+        if verbose:
+            print(f"{UI.GREEN}[SUCCESS] Indexed {len(coords_arr)} GPS points across {len(csv_files)} IMU log(s).{UI.RESET}")
+        return index_data
+
+    @classmethod
+    def lookup_gps(cls, search_dirs, target_lat, target_lon, max_dist_meters=200.0, verbose=True):
+        idx = cls.build_index(search_dirs, verbose=verbose)
+        if not idx:
+            return None
+
+        tree = idx["tree"]
+        cos_lat = idx["cos_lat"]
+        
+        target_metric = np.array([target_lat * 111320.0, target_lon * 111320.0 * cos_lat])
+        
+        if tree is not None:
+            dist_approx, nearest_i = tree.query(target_metric)
+        else:
+            diffs = idx["metric_proj"] - target_metric
+            dists_sq = np.sum(diffs**2, axis=1)
+            nearest_i = np.argmin(dists_sq)
+
+        matched_lat = idx["coords"][nearest_i, 0]
+        matched_lon = idx["coords"][nearest_i, 1]
+        exact_dist_m = cls.haversine_distance_m(target_lat, target_lon, matched_lat, matched_lon)
+
+        result = {
+            "matched_timestamp": idx["timestamps"][nearest_i],
+            "matched_lat": matched_lat,
+            "matched_lon": matched_lon,
+            "distance_meters": exact_dist_m,
+            "source_file": idx["sources"][nearest_i],
+            "is_within_tolerance": exact_dist_m <= max_dist_meters
+        }
+        return result
 
 class AssetDiscovery:
     # 1. Cache for daily metadata.json (New Availability Logic)
     _metadata_cache = {}
+    _date_to_dirs = defaultdict(set)
     
     # 2. Cache for the locations and time-boundaries of CSV/JSON files (Original Logic)
     _scan_cache = {
@@ -294,161 +903,237 @@ class AssetDiscovery:
     }
 
     @classmethod
+    def _parse_and_cache_session_meta(cls, j_path):
+        folder = os.path.normpath(os.path.dirname(j_path))
+        if any(jb['folder'] == folder for jb in cls._scan_cache["json_bounds"]):
+            return
+        try:
+            with open(j_path, 'r', encoding='utf-8', errors='ignore') as f:
+                meta = json.load(f)
+            start_ist = None
+            for k in ["created_utc", "start_time_utc", "start_utc", "start_time", "created_at", "timestamp"]:
+                val = meta.get(k)
+                if val:
+                    start_ist = parse_utc_to_ist(val)
+                    if start_ist:
+                        break
+            if not start_ist:
+                start_ist = parse_timestamp_from_run_name(os.path.basename(folder))
+            if start_ist:
+                cls._scan_cache["json_bounds"].append({'folder': folder, 'start': start_ist, 'meta': meta})
+        except Exception:
+            pass
+
+    @classmethod
+    def _parse_and_cache_csv(cls, c_path):
+        c_path = os.path.normpath(c_path)
+        if any(cb['path'] == c_path for cb in cls._scan_cache["csv_bounds"]):
+            return
+        f_lower = os.path.basename(c_path).lower()
+        if any(k in f_lower for k in ["processed", "batch", "mock", "master", "timestamp_metadata", "output_converted"]):
+            return
+        try:
+            first_t = None
+            last_t = None
+            time_col_idx = -1
+            with open(c_path, 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    if line.strip() and not line.strip().startswith('#'):
+                        header = next(csv.reader([line.strip()]))
+                        for i, col in enumerate(header):
+                            c_name = col.lower().strip()
+                            if 'timestamp_local' in c_name or 'local_timestamp' in c_name or c_name == 'timestamp':
+                                time_col_idx = i
+                                break
+                        break
+                if time_col_idx == -1:
+                    return
+                for line in f:
+                    if line.strip() and not line.strip().startswith('#'):
+                        cols = next(csv.reader([line.strip()]))
+                        if len(cols) > time_col_idx:
+                            first_t = cols[time_col_idx].strip().replace("T", " ").split('.')[0]
+                        break
+            if not first_t:
+                return
+            with open(c_path, 'rb') as f:
+                f.seek(0, 2)
+                file_size = f.tell()
+                chunk_size = min(file_size, 4096)
+                f.seek(file_size - chunk_size)
+                last_chunk = f.read().decode('utf-8', errors='ignore').splitlines()
+                for line in reversed(last_chunk):
+                    if line.strip() and not line.strip().startswith('#'):
+                        cols = next(csv.reader([line.strip()]))
+                        if len(cols) > time_col_idx:
+                            last_t = cols[time_col_idx].strip().replace("T", " ").split('.')[0]
+                            break
+            if first_t and last_t:
+                st = datetime.strptime(first_t, "%Y-%m-%d %H:%M:%S")
+                ed = datetime.strptime(last_t, "%Y-%m-%d %H:%M:%S")
+                if st > ed:
+                    st, ed = ed, st
+                cls._scan_cache["csv_bounds"].append({'path': c_path, 'start': st, 'end': ed})
+        except Exception:
+            pass
+
+    @classmethod
     def load_metadata_from_drive(cls, root_drive):
-        """Indexes daily metadata.json files with flexible date matching."""
+        """Indexes daily metadata.json files and pre-indexes any found session_meta and CSV files."""
+        if not os.path.exists(root_drive):
+            return
         print("Indexing daily metadata.json files...")
-        for root, _, files in os.walk(root_drive):
-            if "metadata.json" in files:
-                try:
-                    with open(os.path.join(root, "metadata.json"), 'r', encoding='utf-8') as f:
-                        meta = json.load(f)
-                        raw_date = str(meta.get('date', ''))
-                        
-                        # --- FLEXIBLE DATE NORMALIZER ---
-                        # Removes separators so "2026-01-22", "22-01-2026", and "22012026" all match
-                        normalized_date = raw_date.replace("-", "").replace("/", "").replace("_", "")
-                        
-                        if normalized_date:
-                            cls._metadata_cache[normalized_date] = meta
-                except Exception as e:
-                    print(f"Error loading metadata in {root}: {e}")
-        print(f"Indexed {len(cls._metadata_cache)} daily metadata files.")
+        skip_dirs = {'$recycle.bin', 'system volume information', '.git', '.venv', '__pycache__', 'test_output', 'results'}
+        for root, dirs, files in os.walk(root_drive):
+            dirs[:] = [d for d in dirs if d.lower() not in skip_dirs and not d.lower().startswith('lens')]
+            for f in files:
+                f_lower = f.lower()
+                if f_lower == "metadata.json":
+                    try:
+                        with open(os.path.join(root, f), 'r', encoding='utf-8', errors='ignore') as jf:
+                            meta = json.load(jf)
+                            raw_date = str(meta.get('date', ''))
+                            norm_date = raw_date.replace("-", "").replace("/", "").replace("_", "")
+                            if norm_date:
+                                cls._metadata_cache[norm_date] = meta
+                                cls._date_to_dirs[norm_date].add(root)
+                    except Exception as e:
+                        print(f"Error loading metadata in {root}: {e}")
+                elif f_lower in ["session_meta.json", "meta.json", "session_metadata.json"]:
+                    cls._parse_and_cache_session_meta(os.path.join(root, f))
+                elif f_lower.endswith('.csv'):
+                    cls._parse_and_cache_csv(os.path.join(root, f))
+        print(f"Indexed {len(cls._metadata_cache)} daily metadata files, {len(cls._scan_cache['json_bounds'])} session_meta files.")
+
+    @classmethod
+    def find_candidate_dirs(cls, root_drive, target_dt=None):
+        """Finds all potential candidate directories containing session_meta.json and sensor data."""
+        candidate_dirs = set()
+        if not os.path.exists(root_drive):
+            return list(candidate_dirs)
+        candidate_dirs.add(root_drive)
+        date_patterns = set()
+        if target_dt:
+            date_patterns.add(target_dt.strftime("%d%m%Y"))
+            date_patterns.add(target_dt.strftime("%m%d%Y"))
+            date_patterns.add(target_dt.strftime("%Y%m%d"))
+            date_patterns.add(target_dt.strftime("%Y-%m-%d"))
+            date_patterns.add(target_dt.strftime("%d-%m-%Y"))
+            for dp in date_patterns:
+                norm = dp.replace("-", "").replace("/", "").replace("_", "")
+                if norm in cls._date_to_dirs:
+                    for d in cls._date_to_dirs[norm]:
+                        candidate_dirs.add(d)
+        for sub in ["All date all other sensors", "All other All dates", "MUMMAS DATA COLLECTION", "MUMMAS"]:
+            p = os.path.join(root_drive, sub)
+            if os.path.isdir(p):
+                candidate_dirs.add(p)
+        for dp in date_patterns:
+            p = os.path.join(root_drive, dp)
+            if os.path.isdir(p):
+                candidate_dirs.add(p)
+            for sub in ["MUMMAS", "MUMMAS DATA COLLECTION", os.path.join("MUMMAS", "MUMMAS DATA COLLECTION")]:
+                p_sub = os.path.join(root_drive, sub, dp)
+                if os.path.isdir(p_sub):
+                    candidate_dirs.add(p_sub)
+        try:
+            for item in os.listdir(root_drive):
+                item_path = os.path.join(root_drive, item)
+                if os.path.isdir(item_path):
+                    item_lower = item.lower()
+                    if item_lower in {'$recycle.bin', 'system volume information', '.git', '.venv', '__pycache__'}:
+                        continue
+                    if item in date_patterns or any(dp in item for dp in date_patterns):
+                        candidate_dirs.add(item_path)
+                    try:
+                        for sub_item in os.listdir(item_path):
+                            sub_path = os.path.join(item_path, sub_item)
+                            if os.path.isdir(sub_path):
+                                if sub_item in date_patterns or any(dp in sub_item for dp in date_patterns):
+                                    candidate_dirs.add(sub_path)
+                                elif sub_item.lower() in ["camera", "imu gps", "imu", "all date all other sensors"]:
+                                    candidate_dirs.add(sub_path)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+        return [os.path.normpath(d) for d in candidate_dirs if os.path.exists(d)]
 
     @classmethod
     def pre_scan_directories(cls, search_dirs):
         """Scans directories to build an O(1) searchable cache of CSV and JSON metadata."""
         dirs_to_scan = [d for d in search_dirs if d not in cls._scan_cache["dirs_scanned"]]
-        if not dirs_to_scan: return
-        
+        if not dirs_to_scan:
+            return
+        skip_dirs = {'$recycle.bin', 'system volume information', '.git', '.venv', '__pycache__', 'test_output', 'results'}
         for s_dir in dirs_to_scan:
-            if not os.path.exists(s_dir): 
+            if not os.path.exists(s_dir):
                 cls._scan_cache["dirs_scanned"].add(s_dir)
                 continue
-                
-            for root, _, files in os.walk(s_dir):
-                for file in files:
-                    f_lower = file.lower()
-                    if file.endswith('.csv') and "processed" not in f_lower and "batch" not in f_lower and "mock" not in f_lower and "master" not in f_lower:
-                        c_path = os.path.join(root, file)
-                        try:
-                            # === LIGHTNING FAST O(1) FILE READER ===
-                            first_t = None
-                            last_t = None
-                            time_col_idx = -1
-                            
-                            with open(c_path, 'r', encoding='utf-8') as f:
-                                for line in f:
-                                    if line.strip() and not line.strip().startswith('#'):
-                                        header = next(csv.reader([line.strip()]))
-                                        for i, col in enumerate(header):
-                                            c_name = col.lower().strip()
-                                            if 'timestamp_local' in c_name or 'local_timestamp' in c_name or c_name == 'timestamp':
-                                                time_col_idx = i
-                                                break
-                                        break
-                                
-                                if time_col_idx == -1: continue
-                                
-                                for line in f:
-                                    if line.strip() and not line.strip().startswith('#'):
-                                        cols = next(csv.reader([line.strip()]))
-                                        if len(cols) > time_col_idx:
-                                            first_t = cols[time_col_idx].strip().replace("T", " ").split('.')[0]
-                                        break
-                                        
-                            if not first_t: continue
-                            
-                            with open(c_path, 'rb') as f:
-                                f.seek(0, 2)
-                                file_size = f.tell()
-                                chunk_size = min(file_size, 2048)
-                                f.seek(file_size - chunk_size)
-                                last_chunk = f.read().decode('utf-8', errors='ignore').splitlines()
-                                
-                                for line in reversed(last_chunk):
-                                    if line.strip() and not line.strip().startswith('#'):
-                                        cols = next(csv.reader([line.strip()]))
-                                        if len(cols) > time_col_idx:
-                                            last_t = cols[time_col_idx].strip().replace("T", " ").split('.')[0]
-                                            break
-                                            
-                            if first_t and last_t:
-                                st = datetime.strptime(first_t, "%Y-%m-%d %H:%M:%S")
-                                ed = datetime.strptime(last_t, "%Y-%m-%d %H:%M:%S")
-                                if st > ed: st, ed = ed, st
-                                cls._scan_cache["csv_bounds"].append({'path': c_path, 'start': st, 'end': ed})
-                        except Exception: 
-                            pass 
-                            
-                    elif file == "session_meta.json":
-                        j_path = os.path.join(root, file)
-                        try:
-                            with open(j_path, 'r') as f:
-                                meta = json.load(f)
-                                utc_str = meta.get("created_utc")
-                                if not utc_str: continue
-                                try:
-                                    utc_dt = datetime.strptime(utc_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-                                except ValueError:
-                                    try:
-                                        utc_dt = datetime.strptime(utc_str, "%Y-%m-%dT%H:%M:%SZ")
-                                    except ValueError:
-                                        utc_dt = datetime.strptime(utc_str.split('.')[0], "%Y-%m-%dT%H:%M:%S")
-
-                                start_ist = (utc_dt.replace(tzinfo=timezone.utc) + timedelta(hours=5, minutes=30)).replace(tzinfo=None)
-                                cls._scan_cache["json_bounds"].append({'folder': os.path.dirname(j_path), 'start': start_ist, 'meta': meta})
-                        except Exception: pass
-                        
+            for root, dirs, files in os.walk(s_dir):
+                dirs[:] = [d for d in dirs if d.lower() not in skip_dirs and not d.lower().startswith('lens')]
+                for f in files:
+                    f_lower = f.lower()
+                    if f_lower in ["session_meta.json", "meta.json", "session_metadata.json"]:
+                        cls._parse_and_cache_session_meta(os.path.join(root, f))
+                    elif f_lower.endswith('.csv'):
+                        cls._parse_and_cache_csv(os.path.join(root, f))
             cls._scan_cache["dirs_scanned"].add(s_dir)
 
     @classmethod
     def search_for_timestamp(cls, root_drive, target_dt, verbose=True):
         """
-        Unified search that runs the strict metadata rules (Frame Count > 0) AND 
-        returns the 4 distinct variables required by the extraction pipeline.
+        Unified search that locates session_meta.json, camera frames, and IMU-GPS CSV,
+        with multi-tier discovery and flexible date/path matching.
         """
+        if not cls._metadata_cache and os.path.exists(root_drive):
+            cls.load_metadata_from_drive(root_drive)
+        candidate_dirs = cls.find_candidate_dirs(root_drive, target_dt)
+        cls.pre_scan_directories(candidate_dirs)
+
         # --- PART 1: Strict 'availability' & frame_count check from daily metadata.json ---
-        date_key = target_dt.strftime('%d%m%Y')
-        daily_meta = cls._metadata_cache.get(date_key)
-        
+        date_keys = [
+            target_dt.strftime('%d%m%Y'),
+            target_dt.strftime('%Y%m%d'),
+            target_dt.strftime('%m%d%Y'),
+            target_dt.strftime('%Y-%m-%d').replace('-', '')
+        ]
+        daily_meta = None
+        for dk in date_keys:
+            if dk in cls._metadata_cache:
+                daily_meta = cls._metadata_cache[dk]
+                break
+
         valid_run_id = None
-        
+        metadata_imu_path = None
+
         if daily_meta:
             target_naive = target_dt.replace(tzinfo=None)
             found_valid_run = False
             metadata_fail_reason = "timestamp outside of run windows"
-            
             for trip_key, runs in daily_meta.get('trips', {}).items():
                 for run in runs:
                     try:
                         start_ist = datetime.strptime(run['start_time_ist'], '%Y-%m-%d %H:%M:%S')
                         end_ist = datetime.strptime(run['end_time_ist'], '%Y-%m-%d %H:%M:%S')
-                        
                         if start_ist <= target_naive <= end_ist:
                             camera_data = run.get('camera', {})
-                            
                             if camera_data.get('available') != "available":
                                 return None, None, None, f"camera {camera_data.get('available', 'N/A')}"
-                            
-                            # Crash-proof frame count check (handles "N/A" strings)
                             for i in range(1, 7):
                                 raw_count = camera_data.get(f"lens{i}_frame_count", 0)
-                                try:
-                                    count = int(raw_count)
-                                except (ValueError, TypeError):
-                                    count = 0
-                                    
+                                try: count = int(raw_count)
+                                except (ValueError, TypeError): count = 0
                                 if count <= 0:
                                     return None, None, None, f"lens{i} has {count} frames"
-                            
                             found_valid_run = True
                             valid_run_id = run.get('run_id')
+                            metadata_imu_path = run.get('imu-gps')
                             break
                     except Exception:
                         continue
                 if found_valid_run:
                     break
-            
             if not found_valid_run:
                 return None, None, None, metadata_fail_reason
 
@@ -459,27 +1144,18 @@ class AssetDiscovery:
 
         if valid_run_id:
             for jb in cls._scan_cache["json_bounds"]:
-                if valid_run_id in jb['folder']:
+                if valid_run_id in jb['folder'] or os.path.basename(jb['folder']) == valid_run_id:
                     best_json_folder = jb['folder']
                     best_meta = jb['meta']
                     break
-                    
-        # FALLBACK: If the exact run_id isn't in the cache, use the old scanning logic
+
         if not best_json_folder:
-            search_dirs = [
-                os.path.join(root_drive, target_dt.strftime("%d%m%Y")), 
-                os.path.join(root_drive, target_dt.strftime("%m%d%Y")), 
-                os.path.join(root_drive, target_dt.strftime("%Y-%m-%d")), 
-                os.path.join(root_drive, "All date all other sensors"),
-                os.path.join(root_drive, "All other All dates")
-            ]
-            
-            cls.pre_scan_directories(search_dirs)
-            
             min_json_diff = float('inf')
-            for jb in cls._scan_cache["json_bounds"]:
+            same_day = [jb for jb in cls._scan_cache["json_bounds"] if jb['start'].date() == target_dt.date()]
+            pool = same_day if same_day else cls._scan_cache["json_bounds"]
+            for jb in pool:
                 diff = abs((jb['start'] - target_dt).total_seconds())
-                if diff < min_json_diff and diff <= 240 * 60:
+                if diff < min_json_diff:
                     min_json_diff = diff
                     best_json_folder = jb['folder']
                     best_meta = jb['meta']
@@ -487,32 +1163,67 @@ class AssetDiscovery:
         if not best_json_folder:
             return None, None, None, "Missing session_meta.json"
 
-        # Search for closest IMU-GPS CSV
-        min_csv_diff = float('inf')
-        for cb in cls._scan_cache["csv_bounds"]:
-            if cb['start'] <= target_dt <= cb['end']:
-                diff = 0
+        # Resolve IMU-GPS CSV
+        if metadata_imu_path:
+            if os.path.exists(metadata_imu_path):
+                best_csv = metadata_imu_path
             else:
-                diff = min(abs((cb['start'] - target_dt).total_seconds()), abs((cb['end'] - target_dt).total_seconds()))
-                
-            if diff < min_csv_diff and diff <= 15 * 60:
-                min_csv_diff = diff
-                best_csv = cb['path']
+                fname = os.path.basename(metadata_imu_path)
+                for c_dir in candidate_dirs:
+                    for sub in ["IMU GPS", "IMU", "imu", "imu_gps", ""]:
+                        test_p = os.path.join(c_dir, sub, fname) if sub else os.path.join(c_dir, fname)
+                        if os.path.exists(test_p):
+                            best_csv = os.path.normpath(test_p)
+                            break
+                    if best_csv: break
+
+        if not best_csv:
+            min_csv_diff = float('inf')
+            for cb in cls._scan_cache["csv_bounds"]:
+                if cb['start'] <= target_dt <= cb['end']:
+                    diff = 0
+                else:
+                    diff = min(abs((cb['start'] - target_dt).total_seconds()), abs((cb['end'] - target_dt).total_seconds()))
+                if diff < min_csv_diff and diff <= 60 * 60:
+                    min_csv_diff = diff
+                    best_csv = cb['path']
+
+        if not best_csv:
+            curr = best_json_folder
+            for _ in range(4):
+                curr = os.path.dirname(curr)
+                if not curr: break
+                for imu_sub in ["IMU GPS", "IMU", "imu", "imu_gps"]:
+                    imu_dir = os.path.join(curr, imu_sub)
+                    if os.path.isdir(imu_dir):
+                        for f in os.listdir(imu_dir):
+                            if f.lower().endswith('.csv'):
+                                best_csv = os.path.join(imu_dir, f)
+                                break
+                    if best_csv: break
+                if best_csv: break
 
         if not best_csv:
             return None, None, None, "Missing IMU/GPS CSV"
-            
-        # Final physical video file check
+
+        # Check physical video lenses
         missing_lenses = []
         for i in range(1, 7):
-            lens_vid = os.path.join(best_json_folder, f"LENS{i}", f"video_lens{i}.mp4")
-            if not os.path.exists(lens_vid):
+            lens_dir = os.path.join(best_json_folder, f"LENS{i}")
+            if not os.path.isdir(lens_dir):
+                lens_dir = os.path.join(best_json_folder, f"lens{i}")
+            has_vid = False
+            if os.path.isdir(lens_dir):
+                for vf in os.listdir(lens_dir):
+                    if vf.lower().endswith('.mp4'):
+                        has_vid = True
+                        break
+            if not has_vid:
                 missing_lenses.append(i)
 
         if missing_lenses:
             return None, None, None, f"Missing Lenses: {missing_lenses}"
 
-        # If all checks pass, return the 4 exact variables
         return best_csv, best_json_folder, best_meta, "OK"
     
 def build_session_registry(base_root_dir):
@@ -520,56 +1231,64 @@ def build_session_registry(base_root_dir):
     if not os.path.exists(base_root_dir):
         return registry
         
-    for root_path, _, files in os.walk(base_root_dir):
-        if "session_meta.json" in files:
-            try:
-                with open(os.path.join(root_path, "session_meta.json"), 'r') as f: 
-                    meta = json.load(f)
-                    
-                utc_str = meta.get("created_utc")
-                if not utc_str: 
-                    continue
-                    
+    for root_path, dirs, files in os.walk(base_root_dir):
+        dirs[:] = [d for d in dirs if not d.lower().startswith('lens')]
+        for f in files:
+            if f.lower() in ["session_meta.json", "meta.json", "session_metadata.json"]:
                 try:
-                    utc_dt = datetime.strptime(utc_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-                except ValueError:
-                    try:
-                        utc_dt = datetime.strptime(utc_str, "%Y-%m-%dT%H:%M:%SZ")
-                    except ValueError:
-                        utc_dt = datetime.strptime(utc_str.split('.')[0], "%Y-%m-%dT%H:%M:%S")
-                
-                ist_start_dt = (utc_dt.replace(tzinfo=timezone.utc) + timedelta(hours=5, minutes=30)).replace(tzinfo=None)
-                
-                vid_path = os.path.join(root_path, "LENS1", "video_lens1.mp4")
-                if not os.path.exists(vid_path): 
-                    continue
+                    with open(os.path.join(root_path, f), 'r', encoding='utf-8', errors='ignore') as jf: 
+                        meta = json.load(jf)
+                        
+                    start_ist = None
+                    for k in ["created_utc", "start_time_utc", "start_utc", "start_time", "created_at", "timestamp"]:
+                        val = meta.get(k)
+                        if val:
+                            start_ist = parse_utc_to_ist(val)
+                            if start_ist:
+                                break
+                    if not start_ist:
+                        start_ist = parse_timestamp_from_run_name(os.path.basename(root_path))
+                    if not start_ist:
+                        continue
                     
-                cap = cv2.VideoCapture(vid_path)
-                if not cap.isOpened(): 
-                    continue
+                    vid_path = None
+                    for l1_name in ["LENS1", "lens1"]:
+                        l1_dir = os.path.join(root_path, l1_name)
+                        if os.path.isdir(l1_dir):
+                            for vf in os.listdir(l1_dir):
+                                if vf.lower().endswith('.mp4'):
+                                    vid_path = os.path.join(l1_dir, vf)
+                                    break
+                        if vid_path: break
                     
-                fps = cap.get(cv2.CAP_PROP_FPS) or 29.97
-                frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-                cap.release()
-                
-                if frames == 0: 
-                    continue 
-                
-                registry.append({
-                    "folder_path": root_path, 
-                    "folder_name": os.path.basename(root_path),
-                    "start_ist": ist_start_dt, 
-                    "end_ist": ist_start_dt + timedelta(seconds=frames/fps), 
-                    "fps": fps, 
-                    "total_frames": frames
-                })
-            except Exception as e: 
-                UI.warn(f"Error reading registry for {root_path}: {e}")
+                    fps = 29.97 # Standard Default
+                    frames = 9000
+                    if vid_path and os.path.exists(vid_path):
+                        cap = cv2.VideoCapture(vid_path)
+                        if cap.isOpened():
+                            fps = cap.get(cv2.CAP_PROP_FPS) or 29.97
+                            frames = cap.get(cv2.CAP_PROP_FRAME_COUNT) or 9000
+                            cap.release()
+                        
+                    if frames == 0: 
+                        continue 
+                    
+                    registry.append({
+                        "folder_path": os.path.normpath(root_path), 
+                        "folder_name": os.path.basename(root_path),
+                        "start_ist": start_ist, 
+                        "end_ist": start_ist + timedelta(seconds=frames/fps), 
+                        "fps": fps, 
+                        "total_frames": frames
+                    })
+                except Exception as e: 
+                    UI.warn(f"Error reading registry for {root_path}: {e}")
+                break
                 
     return registry
 
 
-def process_imu_gps_file(csv_path, registry, master_mapping_path):
+def process_imu_gps_file(csv_path, registry, master_mapping_path, lcz_class=None):
     mapped_data = []
     
     try:
@@ -585,7 +1304,29 @@ def process_imu_gps_file(csv_path, registry, master_mapping_path):
                 UI.error("CSV appears to be empty after skipping comments.")
                 return None
                 
-            time_col = next((c for c in reader.fieldnames if c and ('timestamp_local' in c.lower() or 'local_timestamp' in c.lower() or c.strip().lower() == 'timestamp')), None)
+            # Identify time column and its timezone/epoch nature
+            time_col = None
+            time_mode = 'local' # 'local', 'utc', or 'unix'
+
+            for c in reader.fieldnames:
+                clow = c.lower() if c else ""
+                if 'timestamp_local' in clow or 'local_timestamp' in clow or 'timestamp_ist' in clow or 'ist_timestamp' in clow:
+                    time_col = c
+                    time_mode = 'local'
+                    break
+                elif 'timestamp_utc' in clow or 'utc_timestamp' in clow or 'timestamp_gmt' in clow:
+                    time_col = c
+                    time_mode = 'utc'
+                    break
+                elif 't_unix' in clow or 'unix_timestamp' in clow or 'timestamp_unix' in clow or 'unix_time' in clow or clow == 'epoch':
+                    time_col = c
+                    time_mode = 'unix'
+                    break
+                elif clow in ['timestamp', 'time']:
+                    time_col = c
+                    time_mode = 'local'
+                    break
+
             if not time_col: 
                 UI.error(f"Timestamp column missing. Found: {reader.fieldnames}")
                 return None
@@ -596,13 +1337,43 @@ def process_imu_gps_file(csv_path, registry, master_mapping_path):
                 if not time_str: 
                     continue
                 
-                try: 
-                    clean_time_str = time_str.replace("T", " ").split('.')[0]
-                    if clean_time_str in seen_in_this_file:
+                ist_dt = None
+                utc_dt = None
+
+                # Determine if numeric unix timestamp
+                is_unix = time_mode == 'unix'
+                if not is_unix:
+                    try:
+                        u_val = float(time_str)
+                        if 1000000000 <= u_val <= 2500000000:
+                            is_unix = True
+                    except ValueError:
+                        pass
+
+                if is_unix:
+                    try:
+                        unix_val = float(time_str)
+                        utc_dt = datetime.fromtimestamp(unix_val, timezone.utc)
+                        ist_dt = (utc_dt + timedelta(hours=5, minutes=30)).replace(tzinfo=None)
+                    except ValueError:
                         continue
-                        
-                    ist_dt = datetime.strptime(clean_time_str, "%Y-%m-%d %H:%M:%S")
-                except ValueError: 
+                elif time_mode == 'utc' or time_str.endswith('Z') or time_str.endswith('z'):
+                    try:
+                        clean_utc = time_str.replace("T", " ").replace("Z", "").replace("z", "").split('.')[0]
+                        utc_dt = datetime.strptime(clean_utc, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                        ist_dt = (utc_dt + timedelta(hours=5, minutes=30)).replace(tzinfo=None)
+                    except ValueError:
+                        continue
+                else: # Default: Local IST
+                    try:
+                        clean_time_str = time_str.replace("T", " ").split('.')[0]
+                        ist_dt = datetime.strptime(clean_time_str, "%Y-%m-%d %H:%M:%S")
+                        utc_dt = (ist_dt - timedelta(hours=5, minutes=30)).replace(tzinfo=timezone.utc)
+                    except ValueError:
+                        continue
+
+                clean_time_str = ist_dt.strftime("%Y-%m-%d %H:%M:%S")
+                if clean_time_str in seen_in_this_file:
                     continue
                     
                 # --- STRICT SESSION MATCHING ---
@@ -625,9 +1396,7 @@ def process_imu_gps_file(csv_path, registry, master_mapping_path):
                     continue
                 # -------------------------------
                     
-                utc_dt = (ist_dt - timedelta(hours=5, minutes=30)).replace(tzinfo=timezone.utc)
                 elapsed_sec = (ist_dt - best_session["start_ist"]).total_seconds()
-                
                 if elapsed_sec < 0: elapsed_sec = 0.0
                 
                 mapped_data.append({
@@ -637,7 +1406,8 @@ def process_imu_gps_file(csv_path, registry, master_mapping_path):
                     "source_folder": best_session["folder_name"],
                     "folder_path": best_session["folder_path"], 
                     "playback_time_sec": f"{elapsed_sec:.3f}",
-                    "frame_no": int(elapsed_sec * best_session["fps"])
+                    "frame_no": int(elapsed_sec * best_session["fps"]),
+                    "lcz_class": lcz_class or ""
                 })
                 seen_in_this_file.add(clean_time_str)
                 
@@ -645,20 +1415,35 @@ def process_imu_gps_file(csv_path, registry, master_mapping_path):
             UI.warn("CSV was read, but no timestamps matched the available video clips.")
             return None
             
+        os.makedirs(os.path.dirname(os.path.abspath(master_mapping_path)), exist_ok=True)
         file_exists = os.path.exists(master_mapping_path)
-        existing_timestamps = set()
+        existing_keys = set()
         
         if file_exists:
             try:
                 with open(master_mapping_path, 'r', encoding='utf-8') as f:
-                    existing_timestamps = {r['ist_time'] for r in csv.DictReader(f) if 'ist_time' in r}
+                    for r in csv.DictReader(f):
+                        if 'ist_time' in r:
+                            existing_keys.add((r['ist_time'], r.get('source_folder', '')))
             except Exception: pass
             
-        new_rows = [r for r in mapped_data if r['ist_time'] not in existing_timestamps]
+        new_rows = [r for r in mapped_data if (r['ist_time'], r.get('source_folder', '')) not in existing_keys]
         
         if new_rows:
-            with open(master_mapping_path, 'a', newline='') as f:
-                writer = csv.DictWriter(f, fieldnames=["ist_time", "utc_time", "unix_time", "source_folder", "folder_path", "playback_time_sec", "frame_no"])
+            has_lcz_in_file = False
+            if file_exists:
+                try:
+                    with open(master_mapping_path, 'r', encoding='utf-8') as f:
+                        hdr = f.readline()
+                        has_lcz_in_file = 'lcz_class' in hdr
+                except Exception:
+                    pass
+            fieldnames = ["ist_time", "utc_time", "unix_time", "source_folder", "folder_path", "playback_time_sec", "frame_no"]
+            if not file_exists or has_lcz_in_file:
+                fieldnames.append("lcz_class")
+
+            with open(master_mapping_path, 'a', newline='', encoding='utf-8') as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
                 if not file_exists:
                     writer.writeheader()
                 writer.writerows(new_rows)
@@ -2287,6 +3072,12 @@ class ClipVehicleDetector:
                 break
                 
             # --- UPDATED TRACKER LOGIC ---
+            # Resolve tracker configuration
+            tracker_file = r"C:\viswak_MUMMAS_360degcamera\Insta360ImageAnalysis\FINAL_custom_track.yaml"
+            if not os.path.exists(tracker_file):
+                local_tracker = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Vehicle_detection_360", "FINAL_custom_track.yaml")
+                tracker_file = local_tracker if os.path.exists(local_tracker) else "bytetrack.yaml"
+                
             # Run tracker at a strong scale to capture small details
             results = self.model.track(
                 frame, 
@@ -2295,7 +3086,7 @@ class ClipVehicleDetector:
                 conf=0.27, 
                 iou=0.45, 
                 imgsz=1920, 
-                tracker=r"C:\viswak_MUMMAS_360degcamera\Insta360ImageAnalysis\FINAL_custom_track.yaml"
+                tracker=tracker_file
             )[0]
             # -----------------------------
             
@@ -2997,7 +3788,7 @@ class PanoramicImageDetector:
         
         if save_media:
             with open(json_output, "w") as f:
-                json.dump(full_metadata, f, indent=4)
+                json.dump(full_metadata, f, indent=4, default=lambda o: float(o) if isinstance(o, (np.floating, float)) else int(o) if isinstance(o, (np.integer, int)) else o.tolist() if isinstance(o, np.ndarray) else str(o))
             
         return live_counts
 
@@ -3177,7 +3968,7 @@ class PanoramicPedestrianDetector:
                 "processing_time_sec": round(time.perf_counter() - start_time, 4) 
             }
             with open(out_json_path, 'w') as f:
-                json.dump(final_output_dict, f, indent=4)
+                json.dump(final_output_dict, f, indent=4, default=lambda o: float(o) if isinstance(o, (np.floating, float)) else int(o) if isinstance(o, (np.integer, int)) else o.tolist() if isinstance(o, np.ndarray) else str(o))
             
         return ped_count
 
@@ -3210,19 +4001,36 @@ class GeometryCache:
 
     @staticmethod
     def save_cache(cache_dir, target_dt, zooms, orientations):
-        os.makedirs(cache_dir, exist_ok=True)
-        dt_str = target_dt.strftime("%Y-%m-%d_%H-%M-%S")
-        cache_path = os.path.join(cache_dir, f"geom_{dt_str}.json")
-        data = {
-            "timestamp": str(target_dt),
-            "zooms": zooms,
-            "orientations": orientations
-        }
-        # Safe write to prevent collision between workers
-        tmp_path = cache_path + f".tmp{time.time()}"
-        with open(tmp_path, 'w') as f:
-            json.dump(data, f)
-        os.replace(tmp_path, cache_path)
+        try:
+            os.makedirs(cache_dir, exist_ok=True)
+            dt_str = target_dt.strftime("%Y-%m-%d_%H-%M-%S")
+            cache_path = os.path.join(cache_dir, f"geom_{dt_str}.json")
+
+            def _to_builtin(val):
+                if isinstance(val, (np.floating, float)):
+                    return float(val)
+                if isinstance(val, (np.integer, int)):
+                    return int(val)
+                if isinstance(val, np.ndarray):
+                    return val.tolist()
+                if isinstance(val, (list, tuple)):
+                    return [_to_builtin(x) for x in val]
+                if isinstance(val, dict):
+                    return {str(k): _to_builtin(v) for k, v in val.items()}
+                return val
+
+            data = {
+                "timestamp": str(target_dt),
+                "zooms": _to_builtin(zooms),
+                "orientations": _to_builtin(orientations)
+            }
+            # Safe write to prevent collision between workers
+            tmp_path = cache_path + f".tmp{time.time()}"
+            with open(tmp_path, 'w') as f:
+                json.dump(data, f, default=lambda o: float(o) if isinstance(o, (np.floating, float)) else int(o) if isinstance(o, (np.integer, int)) else o.tolist() if isinstance(o, np.ndarray) else str(o))
+            os.replace(tmp_path, cache_path)
+        except Exception as e:
+            logger.warning(f"Failed to save geometry cache: {e}")
 
 def run_extraction(folder, frame_no, out_dir, OMNI_JSON, meta, save_media=True, target_dt=None):
     start_time = time.perf_counter() 
@@ -3341,9 +4149,9 @@ def run_stitching(output_dir, intr_dir, extracted_frames, meta_info, cached_stit
         if save_media:
             try:
                 with open(os.path.join(output_dir, "static_stitched_meta.json"), "w") as f: 
-                    json.dump(meta_info, f, indent=4)
-            except IOError as e:
-                UI.warn(f"Could not save stitched_data.json: {e}")
+                    json.dump(meta_info, f, indent=4, default=lambda o: float(o) if isinstance(o, (np.floating, float)) else int(o) if isinstance(o, (np.integer, int)) else o.tolist() if isinstance(o, np.ndarray) else str(o))
+            except Exception as e:
+                UI.warn(f"Could not save static_stitched_meta.json: {e}")
             
         return pano_path, meta_info, stitcher, final_pano
         
@@ -3354,10 +4162,17 @@ def run_stitching(output_dir, intr_dir, extracted_frames, meta_info, cached_stit
 # 6. PIPELINE EXECUTION LOOPS
 # ==========================================
 
-def frames_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_MODEL, YOLO_PEDESTRIAN_MODEL, target_dt, override_meta=None, action_choice=None, batch_mode=False, save_media=True, stitcher_cache=None, date_key=None, veh_detector=None, ped_detector=None):
+def frames_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_MODEL, YOLO_PEDESTRIAN_MODEL, target_dt, override_meta=None, action_choice=None, batch_mode=False, save_media=True, stitcher_cache=None, date_key=None, veh_detector=None, ped_detector=None, class_name=None):
     folder, frame_no, meta = get_target_frame(mapped_data, registry, ROOT_OUTPUT, target_dt, override_meta=override_meta, is_clip=False)
     if not folder: 
         return None, None # Signal failure back to batch processor
+
+    if class_name:
+        meta["class_name"] = class_name
+        meta["lcz_class"] = class_name
+    elif override_meta and (override_meta.get("class_name") or override_meta.get("lcz_class")):
+        meta["class_name"] = override_meta.get("class_name") or override_meta.get("lcz_class")
+        meta["lcz_class"] = meta["class_name"]
 
     if not action_choice:
         print("\n--- Image Frames Pipeline Options ---")
@@ -3598,6 +4413,13 @@ def frames_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_
                     with open(ped_json, 'r') as f: ped_count = json.load(f).get("total_pedestrians", 0)
                 except Exception: pass
     
+    # Synchronize to categorized class folder if class_name is provided
+    eff_class = meta.get("class_name") or meta.get("lcz_class") or class_name
+    if save_media and eff_class and os.path.exists(out_dir):
+        class_out = sync_to_class_folder(out_dir, ROOT_OUTPUT, eff_class)
+        if not batch_mode and class_out:
+            UI.info(f"Categorized output saved to: {class_out}")
+
     if not batch_mode:
         UI.success(f"All done! Output at: {out_dir}")
         UI.pause()
@@ -3614,11 +4436,18 @@ def frames_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_
     return veh_counts, ped_count
 
 
-def clips_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_MODEL, YOLO_PEDESTRIAN_MODEL, target_dt, override_meta=None, action_choice=None, batch_mode=False, save_media=True, batch_dur=None):
+def clips_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_MODEL, YOLO_PEDESTRIAN_MODEL, target_dt, override_meta=None, action_choice=None, batch_mode=False, save_media=True, batch_dur=None, class_name=None):
     folder, frame_no, meta = get_target_frame(mapped_data, registry, ROOT_OUTPUT, target_dt, override_meta=override_meta, is_clip=True, batch_dur=batch_dur)
     
     if not folder: 
         return None, None 
+
+    if class_name:
+        meta["class_name"] = class_name
+        meta["lcz_class"] = class_name
+    elif override_meta and (override_meta.get("class_name") or override_meta.get("lcz_class")):
+        meta["class_name"] = override_meta.get("class_name") or override_meta.get("lcz_class")
+        meta["lcz_class"] = meta["class_name"] 
 
     # BUG FIX: Ensure clip_duration_sec is actually in meta if provided by override_meta
     if override_meta and "clip_duration_sec" in override_meta:
@@ -3802,6 +4631,13 @@ def clips_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_M
                     with open(ped_json, 'r') as f: ped_count = json.load(f).get("total_pedestrians", 0)
                 except Exception: pass
 
+    # Synchronize to categorized class folder if class_name is provided
+    eff_class = meta.get("class_name") or meta.get("lcz_class") or class_name
+    if save_media and eff_class and os.path.exists(out_dir):
+        class_out = sync_to_class_folder(out_dir, ROOT_OUTPUT, eff_class)
+        if not batch_mode and class_out:
+            UI.info(f"Categorized output saved to: {class_out}")
+
     if not batch_mode:
         UI.success(f"Video Pipeline Finished! Output at: {out_dir}")
         UI.pause()
@@ -3976,9 +4812,54 @@ def batch_process_csv(csv_path, ROOT_OUTPUT, HARD_DRIVE_ROOT, YOLO_VEHICLE, YOLO
         return
         
     has_dur = 'duration' in [str(c).lower() for c in df.columns]
-    ts_col = next((c for c in df.columns if str(c).lower() == 'timestamp'), None)
+    ts_col = next((c for c in df.columns if str(c).strip().lower() in ['timestamp', 'target_time', 'datetime', 'date_time', 'time', 'ist_time', 'utc_time', 'unix_time']), None)
+
+    lat_col = next((c for c in df.columns if str(c).strip().lower() in ['latitude', 'lat', 'y', 'gnss_latitude', 'filter_lla_lat']), None)
+    lon_col = next((c for c in df.columns if str(c).strip().lower() in ['longitude', 'lon', 'long', 'x', 'gnss_longitude', 'filter_lla_lon']), None)
+
+    if not ts_col and lat_col and lon_col:
+        print(f"\n{UI.CYAN}[INFO] No 'timestamp' column found, but detected GPS columns ('{lat_col}', '{lon_col}').{UI.RESET}")
+        print(f"{UI.CYAN}[INFO] Resolving closest timestamps from IMU GPS data...{UI.RESET}")
+        
+        matched_ts_list = []
+        matched_dist_list = []
+        for idx_row, row in df.iterrows():
+            try:
+                lat_v = float(row[lat_col])
+                lon_v = float(row[lon_col])
+                res = GPSResolver.lookup_gps(HARD_DRIVE_ROOT, lat_v, lon_v, max_dist_meters=500.0, verbose=False)
+                if res:
+                    matched_ts_list.append(res["matched_timestamp"])
+                    matched_dist_list.append(round(res["distance_meters"], 2))
+                else:
+                    matched_ts_list.append("")
+                    matched_dist_list.append(999999.0)
+            except Exception:
+                matched_ts_list.append("")
+                matched_dist_list.append(999999.0)
+                
+        df['timestamp'] = matched_ts_list
+        df['gps_matched_dist_m'] = matched_dist_list
+        ts_col = 'timestamp'
+        valid_gps_count = sum(1 for t in matched_ts_list if t)
+        print(f"{UI.GREEN}[SUCCESS] Resolved {valid_gps_count}/{len(df)} timestamps from GPS coordinates!{UI.RESET}")
+
+    elif ts_col and lat_col and lon_col:
+        missing_mask = df[ts_col].isna() | (df[ts_col].astype(str).str.strip() == '')
+        if missing_mask.any():
+            print(f"\n{UI.CYAN}[INFO] Backfilling {missing_mask.sum()} missing timestamp(s) from GPS coordinates...{UI.RESET}")
+            for idx_row in df[missing_mask].index:
+                try:
+                    lat_v = float(df.loc[idx_row, lat_col])
+                    lon_v = float(df.loc[idx_row, lon_col])
+                    res = GPSResolver.lookup_gps(HARD_DRIVE_ROOT, lat_v, lon_v, max_dist_meters=500.0, verbose=False)
+                    if res:
+                        df.loc[idx_row, ts_col] = res["matched_timestamp"]
+                except Exception:
+                    pass
+
     if not ts_col: 
-        UI.error("No 'timestamp' column found in the file.")
+        UI.error("Neither 'timestamp' nor valid GPS ('latitude' & 'longitude') columns found in the file.")
         return
 
     dur_col = next((c for c in df.columns if str(c).lower() == 'duration'), None) if has_dur else None
@@ -4018,35 +4899,25 @@ def batch_process_csv(csv_path, ROOT_OUTPUT, HARD_DRIVE_ROOT, YOLO_VEHICLE, YOLO
     # --- NEW: FAST BULK AVAILABILITY PRE-CHECK ---
     print(f"\n{UI.CYAN}[INFO] Performing Lightning-Fast Bulk Availability Pre-Check...{UI.RESET}")
 
-    def parse_target_timestamp(ts_str):
-        ts_str = str(ts_str).strip()
-        try: return datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
-        except ValueError: pass
-        try:
-            return (datetime.fromtimestamp(float(ts_str), timezone.utc) + timedelta(hours=5, minutes=30)).replace(tzinfo=None)
-        except ValueError: pass
-        try:
-            return datetime.strptime(ts_str.replace("T", " ").replace("Z", ""), "%Y-%m-%d %H:%M:%S") + timedelta(hours=5, minutes=30)
-        except ValueError: pass
-        return None
+    # Note: Uses global robust parse_target_timestamp supporting Unix, UTC ISO, IST, and multiple date formats
 
     target_dts = []
     for ts_str in df[ts_col]:
         target_dts.append(parse_target_timestamp(str(ts_str)))
         
-    search_dirs = set()
-    search_dirs.add(os.path.join(HARD_DRIVE_ROOT, "All date all other sensors"))
-    search_dirs.add(os.path.join(HARD_DRIVE_ROOT, "All other All dates"))
-    for dt in target_dts:
-        if dt:
-            search_dirs.add(os.path.join(HARD_DRIVE_ROOT, dt.strftime("%d%m%Y")))
-            search_dirs.add(os.path.join(HARD_DRIVE_ROOT, dt.strftime("%m%d%Y")))
-            
     # --- NEW: Actually load the daily metadata JSONs into RAM! ---
     AssetDiscovery.load_metadata_from_drive(HARD_DRIVE_ROOT)
     
-    # Trigger one massive filesystem scan into memory
-    AssetDiscovery.pre_scan_directories(search_dirs)
+    # Collect candidate dirs for all batch timestamps
+    all_candidates = set()
+    for dt in target_dts:
+        if dt:
+            all_candidates.update(AssetDiscovery.find_candidate_dirs(HARD_DRIVE_ROOT, dt))
+    if not all_candidates:
+        all_candidates.add(HARD_DRIVE_ROOT)
+        
+    # Trigger filesystem scan into memory
+    AssetDiscovery.pre_scan_directories(all_candidates)
     
     availability_list = []
     reason_list = [] # NEW: Capture the failure reasons
@@ -4111,12 +4982,13 @@ def batch_process_csv(csv_path, ROOT_OUTPUT, HARD_DRIVE_ROOT, YOLO_VEHICLE, YOLO
         # FIX 2: Unpack 4 variables in the main processing loop
         csv_found, json_folder, session_meta, err_msg = AssetDiscovery.search_for_timestamp(HARD_DRIVE_ROOT, target_dt, verbose=False)
         
+        row_class = extract_class_name(row_dict)
         # --- REGISTRY CACHING & MASTER MAPPING ---
-        cache_key = f"{csv_found}_{json_folder}"
+        cache_key = f"{csv_found}_{json_folder}_{row_class}"
         if cache_key not in cached_registries:
             registry = build_session_registry(os.path.dirname(json_folder))
             mapping_output_path = os.path.join(ROOT_OUTPUT, "Master_Mapping.csv")
-            mapped_data = process_imu_gps_file(csv_found, registry, mapping_output_path)
+            mapped_data = process_imu_gps_file(csv_found, registry, mapping_output_path, lcz_class=row_class)
             
             cached_registries[cache_key] = registry
             cached_mapped_data[cache_key] = mapped_data
@@ -4132,9 +5004,9 @@ def batch_process_csv(csv_path, ROOT_OUTPUT, HARD_DRIVE_ROOT, YOLO_VEHICLE, YOLO
         dur_val = float(row_dict[dur_col]) if dur_col else None
         
         if has_dur:
-            res = clips_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE, YOLO_PED, target_dt, action_choice=choice, batch_mode=True, save_media=save_media, batch_dur=dur_val)
+            res = clips_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE, YOLO_PED, target_dt, action_choice=choice, batch_mode=True, save_media=save_media, batch_dur=dur_val, class_name=row_class)
         else:
-            res = frames_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE, YOLO_PED, target_dt, action_choice=choice, batch_mode=True, save_media=save_media, stitcher_cache=daily_stitcher_cache, date_key=date_key, veh_detector=veh_detector, ped_detector=ped_detector)
+            res = frames_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE, YOLO_PED, target_dt, action_choice=choice, batch_mode=True, save_media=save_media, stitcher_cache=daily_stitcher_cache, date_key=date_key, veh_detector=veh_detector, ped_detector=ped_detector, class_name=row_class)
             
         if res == (None, None):
             row_dict['available'] = 'no'
@@ -4162,33 +5034,89 @@ def batch_process_csv(csv_path, ROOT_OUTPUT, HARD_DRIVE_ROOT, YOLO_VEHICLE, YOLO
 # ==========================================
 
 def main():
-    OMNI_JSON = r"C:\viswak_MUMMAS_360degcamera\Insta360ImageAnalysis\INTRINSICS\calibration_omni.json"
-    YOLO_VEHICLE_MODEL = r"C:\viswak_MUMMAS_360degcamera\Insta360ImageAnalysis\best.pt"
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+
+    OMNI_JSON = os.path.join(PROJECT_ROOT, "FINAL_Intrinsics", "calibration_omni.json")
+    if not os.path.exists(OMNI_JSON):
+        OMNI_JSON = r"D:\MUMMAS\360ImageAnalysis_Vishwak\FINAL_Intrinsics\calibration_omni.json"
+
+    YOLO_VEHICLE_MODEL = os.path.join(PROJECT_ROOT, "Vehicle_detection_360", "best.pt")
+    if not os.path.exists(YOLO_VEHICLE_MODEL):
+        YOLO_VEHICLE_MODEL = r"D:\MUMMAS\360ImageAnalysis_Vishwak\Vehicle_detection_360\best.pt"
+
     YOLO_PEDESTRIAN_MODEL = r"C:\viswak_MUMMAS_360degcamera\Insta360ImageAnalysis\yolo11m.pt"
+    if not os.path.exists(YOLO_PEDESTRIAN_MODEL):
+        for alt_path in [
+            os.path.join(PROJECT_ROOT, "Human_detection_360", "yolo11m.pt"),
+            os.path.join(PROJECT_ROOT, "Human_detection_360", "yolo11n.pt"),
+            "yolo11m.pt",
+            "yolo11n.pt"
+        ]:
+            if os.path.exists(alt_path):
+                YOLO_PEDESTRIAN_MODEL = alt_path
+                break
     
     ROOT_OUTPUT = UI.input_dir("Enter Master Output Directory (e.g., C:\\Results): ", create_if_missing=True)
     HARD_DRIVE_ROOT = UI.input_dir("Enter the Root Directory of the Hard Drive (e.g., D:\\): ") 
 
+    # Prime metadata cache immediately
+    AssetDiscovery.load_metadata_from_drive(HARD_DRIVE_ROOT) 
+
     while True:
         UI.header("360 CAMERA DATA RETRIEVAL HUB", HARD_DRIVE_ROOT, ROOT_OUTPUT)
-        print(" 1) Batch Process via CSV/Excel")
+        print(" 1) Batch Process via CSV/Excel (Supports Timestamps, Lat/Long, & LCZ Classes)")
         print(" 2) Single Process: By Timestamp (IST/UTC/Unix)")
-        print(" 3) Single Process: By Folder Path & Time/Frame")
-        print(f" {UI.RED}4) Quit{UI.RESET}\n")
+        print(" 3) Single Process: By GPS Coordinates (Latitude, Longitude)")
+        print(" 4) Single Process: By Folder Path & Time/Frame")
+        print(" 5) Video Compression Tool (4K -> 1080p / 720p / 420p & Master Mapping)")
+        print(" 6) Categorize Existing Results in Output Directory by LCZ / Class Name")
+        print(f" {UI.RED}7) Quit{UI.RESET}\n")
         
-        choice = UI.input("Select an option (1-4) [e.g., 2]: ")
+        choice = UI.input("Select an option (1-7) [e.g., 2]: ")
 
-        if choice == '4':
+        if choice == '7':
             UI.clear()
             print(f"{UI.CYAN}Exiting. Goodbye!{UI.RESET}")
             break
+
+        if choice == '6':
+            print(f"\n{UI.CYAN}--- Categorize Existing Results by LCZ / Class Name ---{UI.RESET}")
+            target_dir = UI.input_dir(f"Enter Directory to categorize [default: {ROOT_OUTPUT}]: ", create_if_missing=False)
+            if not target_dir:
+                target_dir = ROOT_OUTPUT
+            ref_csv = UI.input(r"Enter reference CSV with LCZ Class (optional, press Enter to search default MUMMAS CSVs): ").strip()
+            categorize_existing_results(target_dir, csv_path=ref_csv if ref_csv else None, verbose=True)
+            UI.pause()
+            continue
+
+        if choice == '5':
+            try:
+                from FINAL_4k_to_1080p import run_compression_interactive
+                suggested_src = HARD_DRIVE_ROOT if HARD_DRIVE_ROOT else r"D:\MUMMAS\MUMMAS DATA COLLECTION"
+                suggested_dst = os.path.normpath(suggested_src) + "-1080p"
+                run_compression_interactive(default_src=suggested_src, default_dst=suggested_dst)
+            except ImportError:
+                import importlib.util
+                comp_py = os.path.join(SCRIPT_DIR, "FINAL_4k_to_1080p.py")
+                if os.path.exists(comp_py):
+                    spec = importlib.util.spec_from_file_location("comp_mod", comp_py)
+                    comp_mod = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(comp_mod)
+                    suggested_src = HARD_DRIVE_ROOT if HARD_DRIVE_ROOT else r"D:\MUMMAS\MUMMAS DATA COLLECTION"
+                    suggested_dst = os.path.normpath(suggested_src) + "-1080p"
+                    comp_mod.run_compression_interactive(default_src=suggested_src, default_dst=suggested_dst)
+                else:
+                    UI.error("FINAL_4k_to_1080p.py not found in PIPELINE directory.")
+            UI.pause()
+            continue
 
         if choice == '1':
             csv_in = UI.input_file("Enter path to Batch CSV/Excel file: ")
             batch_process_csv(csv_in, ROOT_OUTPUT, HARD_DRIVE_ROOT, YOLO_VEHICLE_MODEL, YOLO_PEDESTRIAN_MODEL, OMNI_JSON)
             continue
 
-        # Variables for Unified Processing (Options 2 & 3)
+        # Variables for Unified Processing (Options 2, 3, & 4)
         folder_path = None
         target_dt = None
         registry = []
@@ -4205,7 +5133,6 @@ def main():
                 UI.pause()
                 continue
                 
-            # --- NEW: Unpack the 4th error variable ---
             csv_path, json_folder, meta_data, err_msg = AssetDiscovery.search_for_timestamp(HARD_DRIVE_ROOT, target_dt)
             if not csv_path or not json_folder:
                 UI.error(f"Required assets not found: {err_msg}")
@@ -4222,10 +5149,73 @@ def main():
                 UI.pause()
                 continue
             
-            # Find closest frame for Option 2 (used to pre-calculate durations)
             f_no = mapped_data[0].get('frame_no', 0) if mapped_data else 0
 
         elif choice == '3':
+            try:
+                lat_str = UI.input("Enter Target Latitude (e.g., 12.99150): ")
+                target_lat = float(lat_str)
+                lon_str = UI.input("Enter Target Longitude (e.g., 80.23370): ")
+                target_lon = float(lon_str)
+            except ValueError:
+                UI.error("Invalid latitude or longitude. Please enter valid numbers.")
+                UI.pause()
+                continue
+
+            radius_str = UI.input("Enter Max Search Radius in meters [default: 100m]: ").strip()
+            try:
+                max_radius = float(radius_str) if radius_str else 100.0
+            except ValueError:
+                max_radius = 100.0
+
+            gps_res = GPSResolver.lookup_gps(HARD_DRIVE_ROOT, target_lat, target_lon, max_dist_meters=max_radius)
+            if not gps_res:
+                UI.error(f"No IMU GPS data available to match coordinates ({target_lat}, {target_lon}).")
+                UI.pause()
+                continue
+
+            dist_m = gps_res["distance_meters"]
+            ts_str = gps_res["matched_timestamp"]
+            matched_lat = gps_res["matched_lat"]
+            matched_lon = gps_res["matched_lon"]
+
+            if dist_m > max_radius:
+                UI.warn(f"Nearest GPS point is {dist_m:.1f}m away (exceeds {max_radius:.0f}m tolerance).")
+                confirm = UI.ask_yes_no(f"Proceed using nearest timestamp {ts_str}?")
+                if not confirm:
+                    continue
+            else:
+                UI.success(f"GPS Match Found! Distance: {dist_m:.2f}m")
+                print(f"  Target:    ({target_lat:.6f}, {target_lon:.6f})")
+                print(f"  Matched:   ({matched_lat:.6f}, {matched_lon:.6f})")
+                print(f"  Timestamp: {ts_str} (IST)")
+                print(f"  Source:    {os.path.basename(gps_res['source_file'])}")
+
+            target_dt = parse_target_timestamp(ts_str)
+            if not target_dt:
+                UI.error(f"Could not parse timestamp from GPS record: {ts_str}")
+                UI.pause()
+                continue
+
+            csv_path, json_folder, meta_data, err_msg = AssetDiscovery.search_for_timestamp(HARD_DRIVE_ROOT, target_dt)
+            if not csv_path or not json_folder:
+                UI.error(f"Required assets not found for timestamp {ts_str}: {err_msg}")
+                UI.pause()
+                continue
+
+            folder_path = json_folder
+            registry = build_session_registry(os.path.dirname(json_folder))
+            mapping_output_path = os.path.join(ROOT_OUTPUT, "Master_Mapping.csv")
+            mapped_data = process_imu_gps_file(csv_path, registry, mapping_output_path)
+
+            if not mapped_data:
+                UI.error("Could not parse the IMU CSV successfully.")
+                UI.pause()
+                continue
+
+            f_no = mapped_data[0].get('frame_no', 0) if mapped_data else 0
+
+        elif choice == '4':
             folder_path = UI.input_dir("Enter exact path to the target Session Folder: ")
             target_dt = None # No specific target timestamp for manual mode
 
@@ -4241,43 +5231,46 @@ def main():
                 try:
                     f_no = int(float(UI.input("Enter Playback Seconds: ")) * fps)
                 except ValueError:
-                    UI.error("Invalid seconds.")
+                    UI.error("Invalid playback seconds.")
                     UI.pause()
                     continue
+            
+            override_meta_tmp = {}
+            mapping_output_path = os.path.join(ROOT_OUTPUT, "Master_Mapping.csv")
+            mapped_data = process_manual_frame(folder_path, f_no, fps, override_meta_tmp, mapping_output_path)
+            if not mapped_data:
+                UI.error("Manual processing failed.")
+                UI.pause()
+                continue
 
-        else:
-            UI.error("Invalid Option selected.")
-            UI.pause()
-            continue
-
-        # --- UNIFIED PROCESSOR FOR OPTIONS 2 & 3 ---
-
-        # 1. Probe Session Metadata and Video Duration
-        meta_path = os.path.join(folder_path, "session_meta.json")
-        lens1_path = os.path.join(folder_path, "LENS1", "video_lens1.mp4")
+        # Dynamic Extracted Lenses / FPS Detection
+        lens1_path = None
+        meta_path = os.path.join(folder_path, "session_meta.json") if folder_path else None
+        for l1_cand in ["LENS1", "lens1"]:
+            l1_dir = os.path.join(folder_path, l1_cand) if folder_path else None
+            if l1_dir and os.path.exists(l1_dir):
+                for vf in os.listdir(l1_dir):
+                    if vf.lower().endswith('.mp4'):
+                        lens1_path = os.path.join(l1_dir, vf)
+                        break
+            if lens1_path: break
         
         total_frames = 9000
-        if os.path.exists(lens1_path):
+        if lens1_path and os.path.exists(lens1_path):
             cap = cv2.VideoCapture(lens1_path)
             if cap.isOpened():
                 fps = cap.get(cv2.CAP_PROP_FPS) or 29.97
-                total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) or 9000
             cap.release()
 
-        if os.path.exists(meta_path):
+        if meta_path and os.path.exists(meta_path):
             try:
-                with open(meta_path, 'r') as f:
+                with open(meta_path, 'r', encoding='utf-8', errors='ignore') as f:
                     m = json.load(f)
-                    if m.get("created_utc"):
-                        utc_str = m["created_utc"]
-                        try:
-                            utc_dt = datetime.strptime(utc_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-                        except ValueError:
-                            try:
-                                utc_dt = datetime.strptime(utc_str, "%Y-%m-%dT%H:%M:%SZ")
-                            except ValueError:
-                                utc_dt = datetime.strptime(utc_str.split('.')[0], "%Y-%m-%dT%H:%M:%S")
-                        start_ist_str = (utc_dt.replace(tzinfo=timezone.utc) + timedelta(hours=5, minutes=30)).replace(tzinfo=None).isoformat()
+                    val = m.get("created_utc") or m.get("start_time_utc") or m.get("start_utc") or m.get("start_time") or m.get("created_at") or m.get("timestamp")
+                    start_dt = parse_utc_to_ist(val) if val else parse_timestamp_from_run_name(os.path.basename(folder_path))
+                    if start_dt:
+                        start_ist_str = start_dt.isoformat()
             except Exception as e:
                 UI.warn(f"Failed to read session_meta.json cleanly: {e}")
 
@@ -4302,37 +5295,92 @@ def main():
                     UI.error("Please enter a valid number.")
 
         # ==========================================
-        # 3 & 4. ROUTING TO PIPELINES
+        # 3 & 4. ROUTING TO PIPELINES WITH LCZ/CLASS
         # ==========================================
+        single_class = auto_detect_class_from_csvs(target_dt) if target_dt else None
         
-        if choice == '2':
-            # Option 2 (By Timestamp): Let the pipeline map the timestamp naturally. 
+        if choice in ['2', '3']:
+            # Option 2 (By Timestamp) & Option 3 (By GPS): Let the pipeline map the timestamp naturally. 
             if p_choice == '1':
-                frames_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_MODEL, YOLO_PEDESTRIAN_MODEL, target_dt)
+                frames_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_MODEL, YOLO_PEDESTRIAN_MODEL, target_dt, class_name=single_class)
             else:
-                clips_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_MODEL, YOLO_PEDESTRIAN_MODEL, target_dt, batch_dur=clip_dur)
+                clips_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_MODEL, YOLO_PEDESTRIAN_MODEL, target_dt, batch_dur=clip_dur, class_name=single_class)
                 
-        elif choice == '3':
-            # Option 3 (Manual Input): Force the pipeline to use the exact folder and frame.
+        elif choice == '4':
+            # Option 4 (Manual Input): Force the pipeline to use the exact folder and frame.
+            elapsed_sec = f_no / fps if fps > 0 else 0.0
+            opt3_ist = "Manual_Input"
+            opt3_utc = None
+            opt3_unix = "0.000"
+
+            if start_ist_str:
+                try:
+                    start_dt = datetime.fromisoformat(start_ist_str)
+                    exact_ist_dt = start_dt + timedelta(seconds=elapsed_sec)
+                    opt3_ist = exact_ist_dt.strftime("%Y-%m-%d %H:%M:%S")
+                    opt3_utc_dt = (exact_ist_dt - timedelta(hours=5, minutes=30)).replace(tzinfo=timezone.utc)
+                    opt3_utc = opt3_utc_dt.strftime("%Y-%m-%d %H:%M:%S")
+                    opt3_unix = f"{opt3_utc_dt.timestamp():.3f}"
+                    if not single_class:
+                        single_class = auto_detect_class_from_csvs(exact_ist_dt)
+                except Exception:
+                    pass
+
             override_meta = {
                 "folder_path": folder_path,
                 "frame_no": f_no,
                 "fps": fps,
                 "start_ist_str": start_ist_str,
                 "source_folder": os.path.basename(folder_path),
-                "ist_time": "Manual_Input",
+                "ist_time": opt3_ist,
                 "is_manual": True,
-                "playback_time_sec": f"{f_no / fps:.3f}",
+                "playback_time_sec": f"{elapsed_sec:.3f}",
                 "clip_duration_sec": clip_dur,
                 "imu_data": None,
-                "utc_time": None,
-                "unix_time": 0
+                "utc_time": opt3_utc,
+                "unix_time": opt3_unix,
+                "class_name": single_class,
+                "lcz_class": single_class
             }
+
+            # Record Option 4 manual extraction into Master_Mapping.csv
+            mapping_output_path = os.path.join(ROOT_OUTPUT, "Master_Mapping.csv")
+            try:
+                os.makedirs(ROOT_OUTPUT, exist_ok=True)
+                file_exists = os.path.exists(mapping_output_path)
+                has_lcz_in_file = False
+                if file_exists:
+                    try:
+                        with open(mapping_output_path, 'r', encoding='utf-8') as f:
+                            hdr = f.readline()
+                            has_lcz_in_file = 'lcz_class' in hdr
+                    except Exception: pass
+
+                fieldnames = ["ist_time", "utc_time", "unix_time", "source_folder", "folder_path", "playback_time_sec", "frame_no"]
+                if not file_exists or has_lcz_in_file:
+                    fieldnames.append("lcz_class")
+
+                with open(mapping_output_path, 'a', newline='', encoding='utf-8') as f:
+                    writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
+                    if not file_exists:
+                        writer.writeheader()
+                    writer.writerow({
+                        "ist_time": opt3_ist,
+                        "utc_time": opt3_utc if opt3_utc else "N/A",
+                        "unix_time": opt3_unix,
+                        "source_folder": os.path.basename(folder_path),
+                        "folder_path": folder_path,
+                        "playback_time_sec": f"{elapsed_sec:.3f}",
+                        "frame_no": f_no,
+                        "lcz_class": single_class or ""
+                    })
+            except Exception as e:
+                UI.warn(f"Could not append manual frame to Master_Mapping.csv: {e}")
             
             if p_choice == '1':
-                frames_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_MODEL, YOLO_PEDESTRIAN_MODEL, target_dt, override_meta=override_meta)
+                frames_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_MODEL, YOLO_PEDESTRIAN_MODEL, target_dt, override_meta=override_meta, class_name=single_class)
             else:
-                clips_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_MODEL, YOLO_PEDESTRIAN_MODEL, target_dt, override_meta=override_meta)
+                clips_pipeline(mapped_data, registry, OMNI_JSON, ROOT_OUTPUT, YOLO_VEHICLE_MODEL, YOLO_PEDESTRIAN_MODEL, target_dt, override_meta=override_meta, class_name=single_class)
 
 if __name__ == "__main__":
     # Add this line explicitly for Windows PyTorch multiprocessing
