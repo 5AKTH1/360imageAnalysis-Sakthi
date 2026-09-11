@@ -82,7 +82,7 @@ class AssetDiscovery:
                         # SUCCESS
                         return "yes", "OK"
                         
-                except Exception as e:
+                except Exception as e: 
                     print(f"DEBUG - Error parsing run data for timestamp {target_dt}: {e}")
                     continue
                                 
