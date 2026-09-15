@@ -89,6 +89,7 @@ def process_single_file(src_file, dest_file, do_compress=True, resolution="1080p
         os.makedirs(os.path.dirname(dest_file), exist_ok=True)
         
         # 1. Attempt GPU Acceleration (CUDA NVENC)
+        # 'medium' is universally supported across both legacy and modern NVENC builds (maps to p4 / HQ 1-pass)
         cmd_cuda = [
             "ffmpeg", 
             "-hwaccel", "cuda", 
@@ -98,7 +99,7 @@ def process_single_file(src_file, dest_file, do_compress=True, resolution="1080p
             "-vf", scale_cuda, 
             "-c:v", "h264_nvenc",  
             "-cq", "28",          
-            "-preset", "p4",       
+            "-preset", "medium",       
             "-c:a", "aac", 
             "-y", 
             dest_file
@@ -110,6 +111,15 @@ def process_single_file(src_file, dest_file, do_compress=True, resolution="1080p
             return True
         except subprocess.CalledProcessError as e:
             err_msg = e.stderr.decode("utf-8", errors="replace").strip() if e.stderr else str(e)
+            # If preset was rejected by an unusual build, retry once with 'fast'
+            if "preset" in err_msg.lower():
+                try:
+                    cmd_cuda_retry = [arg for i, arg in enumerate(cmd_cuda) if arg != "-preset" and (i == 0 or cmd_cuda[i-1] != "-preset")] + ["-preset", "fast"]
+                    subprocess.run(cmd_cuda_retry, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+                    print(f"[DONE (GPU - fallback preset)] {dest_file}")
+                    return True
+                except Exception:
+                    pass
             last_err = "\n   ".join(err_msg.splitlines()[-4:]) if err_msg else str(e)
             print(f"[GPU FAILED / FALLBACK TO CPU] {src_file}\n   Reason: {last_err}")
         except FileNotFoundError:
@@ -132,7 +142,9 @@ def process_single_file(src_file, dest_file, do_compress=True, resolution="1080p
             print(f"[DONE (CPU)] {dest_file}")
             return True
         except subprocess.CalledProcessError as e:
-            print(f"[ERROR] Failed to compress {src_file} on CPU as well: {e}")
+            err_msg = e.stderr.decode("utf-8", errors="replace").strip() if e.stderr else str(e)
+            last_err = "\n   ".join(err_msg.splitlines()[-4:]) if err_msg else str(e)
+            print(f"[ERROR] Failed to compress {src_file} on CPU as well:\n   Reason: {last_err}")
             return False
     else:
         # User opted not to compress OR non-video file: copy as-is
