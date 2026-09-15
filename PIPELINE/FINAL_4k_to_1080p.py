@@ -86,10 +86,13 @@ def process_single_file(src_file, dest_file, do_compress=True, resolution="1080p
         
         print(f"[COMPRESSING -> {res_cfg['name']}] {src_file}...")
         
+        os.makedirs(os.path.dirname(dest_file), exist_ok=True)
+        
         # 1. Attempt GPU Acceleration (CUDA NVENC)
         cmd_cuda = [
             "ffmpeg", 
             "-hwaccel", "cuda", 
+            "-hwaccel_device", "0",
             "-hwaccel_output_format", "cuda", 
             "-i", src_file,
             "-vf", scale_cuda, 
@@ -105,8 +108,12 @@ def process_single_file(src_file, dest_file, do_compress=True, resolution="1080p
             subprocess.run(cmd_cuda, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
             print(f"[DONE (GPU)] {dest_file}")
             return True
-        except (subprocess.CalledProcessError, FileNotFoundError) as e:
-            print(f"[GPU FAILED / FALLBACK TO CPU] {src_file}: {e}")
+        except subprocess.CalledProcessError as e:
+            err_msg = e.stderr.decode("utf-8", errors="replace").strip() if e.stderr else str(e)
+            last_err = "\n   ".join(err_msg.splitlines()[-4:]) if err_msg else str(e)
+            print(f"[GPU FAILED / FALLBACK TO CPU] {src_file}\n   Reason: {last_err}")
+        except FileNotFoundError:
+            print(f"[GPU FAILED / FALLBACK TO CPU] {src_file}: 'ffmpeg' executable was not found in system PATH.")
             
         # 2. CPU Fallback
         cmd_cpu = [
